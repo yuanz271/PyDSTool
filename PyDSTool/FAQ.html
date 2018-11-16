@@ -1,0 +1,137 @@
+<html>
+<head><title>PyDSTool -- Frequently Asked Questions</title>
+</head>
+
+<body>
+
+<h1>Frequently Asked Questions</h1>
+
+<ol>
+<li><a href="#1">Questions about set-up and installation</a>
+<li><a href="#2">Questions about using the software</a>
+<li><a href="#3">Questions about documentation</a>
+</ol>
+<hr>
+
+<a name="1"><h2>1. Questions about set-up and installation</h2>
+
+<p><b>1.1 : On unix systems, when I run a PyDSTool script involving a C-based ODE integrator, I get the error: "don't know how to
+compile C/C++ code on platform 'posix' with 'gcc' compiler". How do I fix it?</b></p>
+
+<p>The most likely problem is that Python's compiler, accessed through the 'distutils' package,
+is looking at an environment variable 'CC' that is set wrong. 
+Go to the Python installation directory's /lib/python2.4/config/Makefile. Grep that file for gcc and
+see if the first line returned starts with CC = gcc ... e.g. something like this
+</p>
+<p>
+$ cd <i>python_installation_dir</i><br>
+$ grep -n gcc /lib/python2.4/config/Makefile
+</p>
+<p>
+If this entry is not set correctly you might have to rebuild Python with that entry changed by hand.
+</p>
+<p>
+You should also see what your shell's CC is set to, e.g. using the 'set' command from the unix prompt.
+There is an identically-named environment variable in the shell, which may not be the critical one to have set correctly.
+The shell environment variable CC does <b>not</b> necessarily have to be set to 'gcc'.
+If the makefile is correct for you, but the shell CC is not, you could try 'export CC=gcc' or 'set CC=gcc' before the python
+session to see if that works. ... <i>and please let me know the outcome!</i>
+</p>
+
+<p><b>1.2 : Are there going to be installers available for the different platforms?</b></p>
+
+<p>
+For unix systems we are developing a shell script using autoconf that will collect and compile appropriate versions of the sources
+for the underlying libraries and their dependencies. Windows installation from binaries is relatively simple in comparison,
+but Windows users wishing to install using a comparable script will probably have to have a unix-like shell already
+available (such as Cygwin or MinGW's MinSys). We are also investigating the use of a proper Python setup.py installer
+for PyDSTool itself.
+</p>
+
+<p><b>1.3 : I want to use native 64 bit with my python installation,
+but I get errors when I try to use Dopri, Radau, or AUTO. What do I
+do?</b></p>
+
+<p>
+In lieu of an automated system for recognizing fully-working native 64
+bit platforms in python, PyDSTool is currently hard-wired to make
+32-bit compatible compilations of all C and Fortran code. To remove
+that, simply do a search for the string '-m32' which appears in the
+Dopri_ODEsystem.py, Radau_ODEsystem.py, and ContClass.py files. Remove
+these strings leaving the other options and it should work. 64 bit
+support is in development and feedback about your experience is
+helpful in better supporting this in the future.
+</p>
+
+<br><hr><br>
+
+
+<a name="2"><h2>2. Questions about using the software</h2>
+
+<b>2.1 : Why do I get an error about using the carat character (^) in my function specifications?</b>
+<p>
+There are problems in Python when trying to express powers in the form x^p, where x and p are floating point
+numbers. The safest solution is to use the syntax pow(x,p) or x**p instead. PyDStool provides a utility called
+'convertPowers(my_string, target)' which will automatically convert expressions involving powers (using any
+mixture of ^, **, or pow()), and return the converted string. The target argument must be a string: '^', '**', or
+'pow'.
+</p>
+
+<b>2.2 : Is it possible to write the entire RHS in C/C++ for the Dopri
+or Radau integrators?</b>
+<p>
+Yes, but I only recommend doing it in a certain way. Python still
+needs to see what variables and parameters you are declaring. I'd
+suggest putting in at least a dummy RHS and full declarations for
+variables and params as usual. Then, before you make the Generator
+object, add the switch
+</p>
+<p>
+DSargs.nobuild = True
+</p>
+<p>
+to the arguments to the Generator initializer. The object you get back
+won't be ready to integrate but, if your Gen is called "odesys" then
+you'd do
+</p>
+<p>
+odesys.makeLibSource()
+</p>
+<p>
+and you can go edit the .c file, which might be called odesys_vf.c in
+the dopri853_temp/ directory within your local working directory. Be sure to
+follow the same argument list and return through the f_ vector. If you
+read an existing .c vector field file you'll get the idea. Obviously
+you can add any other functions and library imports you want to that
+file. Once you're finished editing you go back to the python prompt
+and run
+</p>
+<p>
+odesys.compileLib()
+</p>
+<p>
+and now you can access the RHS function you build directly using
+odesys.Rhs(<args>) and can call odesys.compute() etc. as usual.
+</p>
+
+<p><b>2.3 : When using Dopri and Radau, why does python completely crash when I run an integration? (It works in Vode)</b></p>
+
+<p>(For instance, you may get a "Bus Error".) One possibility is that you have changed something structural about your model in the python definitions but not deleted the DLL that is compiled for the model in your working directory (the .so or .pyd file named after your model). That file must be deleted while not currently using it inside any python application, and recreated for the changed version of the model. Python does not have a way to refresh DLLs dynamically if they have already been loaded once and need to be changed.</p>
+<p>Another possibility is that you ran out of memory. On some platforms you may see an assertion fail message about memory.c at the time of the crash. In that case you probably have the integrator's max_pts or maxevpts algorithmic parameter set too large, and python cannot allocate the memory when you begin the integration.</p>
+<a name="3">
+<h2>3. Questions about documentation</h2>
+
+<b>3.1 : Where is the wiki documentation?</b>
+<p>
+The wiki server was hosted at Cornell, and crashed in 2010. The data
+was not recovered and the server was not restored. As the project is no longer
+developed at Cornell, there will be a wait before a new wiki can be
+established. In the meantime, a few of the primary wiki pages have
+been mirrored at the main website for PyDSTool.</p>
+
+<b>3.2 : Where is the API documentation?</b>
+<p><a href="./html/index.html">Here</a>.
+</p>
+
+</body>
+</html>
