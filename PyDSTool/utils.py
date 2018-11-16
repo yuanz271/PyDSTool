@@ -3,23 +3,47 @@
 """
 from __future__ import absolute_import, print_function
 
+import collections
+import numbers
 import os
 
 from distutils.util import get_platform
 
 from .errors import *
 from .common import *
+from .common import _num_types, _seq_types
 from .parseUtils import joinStrs
-from PyDSTool.core.context_managers import RedirectStdout
+from .core.context_managers import RedirectStdout
 
 # !! Replace use of these named imports with np.<X>
-from numpy import Inf, NaN, isfinite, less, greater, sometrue, alltrue, \
-     searchsorted, take, argsort, array, swapaxes, asarray, zeros, transpose, \
-     float64, int32, argmin, ndarray, concatenate
+from numpy import (
+    Inf,
+    NaN,
+    isfinite,
+    less,
+    greater,
+    sometrue,
+    alltrue,
+    searchsorted,
+    take,
+    argsort,
+    array,
+    swapaxes,
+    asarray,
+    zeros,
+    transpose,
+    float64,
+    int32,
+    argmin,
+    ndarray,
+    concatenate,
+)
 import numpy as np
 from numpy.linalg import norm
 from scipy.optimize import minpack, zeros
+
 try:
+    # noinspection PyUnresolvedReferences
     newton_meth = minpack.newton
 except AttributeError:
     # newer version of scipy
@@ -34,42 +58,64 @@ import copy
 
 _classes = []
 
-_functions = ['intersect', 'remain', 'union', 'cartesianProduct',
-              'makeImplicitFunc', 'orderEventData',
-              'saveObjects', 'loadObjects', 'info', 'compareList',
-              'findClosestArray', 'findClosestPointIndex', 'find',
-              'makeMfileFunction', 'make_RHS_wrap', 'make_Jac_wrap',
-              'progressBar', 'distutil_destination', 'architecture',
-              'extra_arch_arg', 'arclength']
+_functions = [
+    "intersect",
+    "remain",
+    "union",
+    "cartesianProduct",
+    "makeImplicitFunc",
+    "orderEventData",
+    "saveObjects",
+    "loadObjects",
+    "info",
+    "compareList",
+    "findClosestArray",
+    "findClosestPointIndex",
+    "find",
+    "makeMfileFunction",
+    "make_RHS_wrap",
+    "make_Jac_wrap",
+    "progressBar",
+    "distutil_destination",
+    "architecture",
+    "extra_arch_arg",
+    "arclength",
+]
 
-_mappings = ['_implicitSolveMethods', '_1DimplicitSolveMethods']
+_mappings = ["_implicitSolveMethods", "_1DimplicitSolveMethods"]
 
 __all__ = _classes + _functions + _mappings
 
 
-
-## ------------------------------------------------------------------
+# ------------------------------------------------------------------
 # File for stdout redirecting
 _logfile = os.devnull
 
-## Utility functions
+# Utility functions
+
 
 def makeMfileFunction(name, argname, defs):
     """defs is a dictionary of left-hand side -> right-hand side definitions"""
     # writeout file <name>.m
-    mfile = open(name+".m", 'w')
-    mfile.write("function %s = %s(%s)\n"%(name,name,argname))
+    mfile = open(name + ".m", "w")
+    mfile.write("function %s = %s(%s)\n" % (name, name, argname))
     for k, v in defs.items():
         if k != name:
-            mfile.write("%s = %s;\n"%(k,v))
+            mfile.write("%s = %s;\n" % (k, v))
     # now the final definition of tau_recip or inf
-    mfile.write("%s = %s;\n"%(name,defs[name]))
+    mfile.write("%s = %s;\n" % (name, defs[name]))
     mfile.write("return\n")
     mfile.close()
 
 
-def info(x, specName="Contents", offset=1, recurseDepth=1,
-                 recurseDepthLimit=2, _repeatFirstTime=False):
+def info(
+    x,
+    specName="Contents",
+    offset=1,
+    recurseDepth=1,
+    recurseDepthLimit=2,
+    _repeatFirstTime=False,
+):
     """Pretty printer for showing argument lists and dictionary
     specifications."""
 
@@ -78,10 +124,10 @@ def info(x, specName="Contents", offset=1, recurseDepth=1,
             # first time through
             print("Information for " + specName + "\n")
     else:
-        print(specName + ":", end=' ')
+        print(specName + ":", end=" ")
     if x.__class__ is type:
         return
-    if hasattr(x, 'items'):
+    if hasattr(x, "items"):
         x_keys = sortedDictKeys(x)
         if len(x_keys) == 0:
             print("< empty >")
@@ -90,54 +136,60 @@ def info(x, specName="Contents", offset=1, recurseDepth=1,
         for k in x_keys:
             v = x[k]
             kstr = object2str(k)
-            basestr = " "*(offset-1) + kstr
-            if hasattr(v, 'items'):
-                info(v, basestr, offset+4, recurseDepth+1,
-                             recurseDepthLimit)
+            basestr = " " * (offset - 1) + kstr
+            if hasattr(v, "items"):
+                info(v, basestr, offset + 4, recurseDepth + 1, recurseDepthLimit)
             else:
-                vStrList = object2str(v).split(', ')
-                if len(vStrList)==0:
-                    vStrList = ['< no information >']
-                elif len(vStrList)==1 and vStrList[0] == '':
-                    vStrList = ['< empty >']
-                outStrList = [basestr+": "]
+                vStrList = object2str(v).split(", ")
+                if len(vStrList) == 0:
+                    vStrList = ["< no information >"]
+                elif len(vStrList) == 1 and vStrList[0] == "":
+                    vStrList = ["< empty >"]
+                outStrList = [basestr + ": "]
                 for i in range(len(vStrList)):
                     if len(vStrList[i] + outStrList[-1]) < 78:
-                        outStrList[-1] += ", "*(i>0) + vStrList[i]
+                        outStrList[-1] += ", " * (i > 0) + vStrList[i]
                     else:
-                        if i>0:
+                        if i > 0:
                             if i != len(vStrList):
                                 # add trailing comma to previous line
                                 outStrList[-1] += ","
                             # start on new line
-                            outStrList.append(" "*(len(kstr)+3) + vStrList[i])
+                            outStrList.append(" " * (len(kstr) + 3) + vStrList[i])
                         else:
                             # too long for line and string has no commas
                             # could work harder here, but for now, just include
                             # the long line
                             outStrList[-1] += vStrList[i]
-                if recurseDepth==1 and len(outStrList)>1:
+                if recurseDepth == 1 and len(outStrList) > 1:
                     # print an extra space between topmost level entries
                     # provided those entries occupy more than one line.
                     print("\n")
                 for s in outStrList:
                     print(s)
-    elif hasattr(x, '__dict__') and recurseDepth <= recurseDepthLimit:
-        info(x.__dict__, specName, offset, recurseDepth,
-                     recurseDepthLimit, True)
+    elif hasattr(x, "__dict__") and recurseDepth <= recurseDepthLimit:
+        info(x.__dict__, specName, offset, recurseDepth, recurseDepthLimit, True)
     else:
         xstr = repr(x)
-        if xstr == '':
-            xstr = '< no information >'
+        if xstr == "":
+            xstr = "< no information >"
         print(xstr)
 
 
-_implicitSolveMethods = ['newton', 'bisect', 'steffe', 'fsolve']
-_1DimplicitSolveMethods = ['newton', 'bisect', 'steffe']
+_implicitSolveMethods = ["newton", "bisect", "steffe", "fsolve"]
+_1DimplicitSolveMethods = ["newton", "bisect", "steffe"]
 
 
-def makeImplicitFunc(f, x0, fprime=None, extrafargs=(), xtolval=1e-8,
-                        maxnumiter=100, solmethod='newton', standalone=True):
+def makeImplicitFunc(
+    f,
+    x0,
+    fprime=None,
+    extrafargs=(),
+    xtolval=1e-8,
+    maxnumiter=100,
+    solmethod="newton",
+    standalone=True,
+):
     """Builds an implicit function representation of an N-dimensional curve
     specified by (N-1) equations. Thus argument f is a function of 1 variable.
     In the case of the 'fsolve' method, f may have dimension up to N-1.
@@ -152,90 +204,136 @@ def makeImplicitFunc(f, x0, fprime=None, extrafargs=(), xtolval=1e-8,
     an additional argument is added, so as to be compatible as a method
     definition."""
 
-    if solmethod == 'bisect':
-        assert isinstance(x0, _seq_types), \
-               "Invalid type '"+str(type(x0))+"' for x0 = "+str(x0)
+    if solmethod == "bisect":
+        assert isinstance(x0, _seq_types), (
+            "Invalid type '" + str(type(x0)) + "' for x0 = " + str(x0)
+        )
         assert len(x0) == 2
-    elif solmethod == 'fsolve':
-        assert isinstance(x0, (_seq_types, _num_types)), \
-               "Invalid type '"+str(type(x0))+"' for x0 = "+str(x0)
+    elif solmethod == "fsolve":
+        assert isinstance(x0, (_seq_types, _num_types)), (
+            "Invalid type '" + str(type(x0)) + "' for x0 = " + str(x0)
+        )
     else:
-        assert isinstance(x0, _num_types), \
-               "Invalid type '"+str(type(x0))+"' for x0 = "+str(x0)
+        assert isinstance(x0, _num_types), (
+            "Invalid type '" + str(type(x0)) + "' for x0 = " + str(x0)
+        )
 
     # define the functions that could be used
     # scipy signatures use y instead of t, but this naming is consistent
     # with that in the Generator module
     try:
         if standalone:
+
             def newton_fn(t):
                 with RedirectStdout(_logfile):
-                    res = float(newton_meth(f, x0, args=(t,)+extrafargs, tol=xtolval,
-                                        maxiter=maxnumiter, fprime=fprime))
+                    res = float(
+                        newton_meth(
+                            f,
+                            x0,
+                            args=(t,) + extrafargs,
+                            tol=xtolval,
+                            maxiter=maxnumiter,
+                            fprime=fprime,
+                        )
+                    )
                     return res
 
             def bisect_fn(t):
                 with RedirectStdout(_logfile):
-                    res = minpack.bisection(f, x0[0], x0[1], args=(t,)+extrafargs,
-                                        xtol=xtolval, maxiter=maxnumiter)
+                    res = minpack.bisection(
+                        f,
+                        x0[0],
+                        x0[1],
+                        args=(t,) + extrafargs,
+                        xtol=xtolval,
+                        maxiter=maxnumiter,
+                    )
                     return res
 
             def steffe_fn(t):
                 with RedirectStdout(_logfile):
-                    res = minpack.fixed_point(f, x0, args=(t,)+extrafargs,
-                                            xtol=xtolval, maxiter=maxnumiter)
+                    res = minpack.fixed_point(
+                        f, x0, args=(t,) + extrafargs, xtol=xtolval, maxiter=maxnumiter
+                    )
                     return res
 
             def fsolve_fn(t):
                 with RedirectStdout(_logfile):
-                    res = minpack.fsolve(f, x0, args=(t,)+extrafargs,
-                                        xtol=xtolval, maxfev=maxnumiter,
-                                        fprime=fprime)
+                    res = minpack.fsolve(
+                        f,
+                        x0,
+                        args=(t,) + extrafargs,
+                        xtol=xtolval,
+                        maxfev=maxnumiter,
+                        fprime=fprime,
+                    )
                     return res
+
         else:
+
             def newton_fn(s, t):
                 with RedirectStdout(_logfile):
-                    res = float(newton_meth(f, x0, args=(t,)+extrafargs, tol=xtolval,
-                                        maxiter=maxnumiter, fprime=fprime))
+                    res = float(
+                        newton_meth(
+                            f,
+                            x0,
+                            args=(t,) + extrafargs,
+                            tol=xtolval,
+                            maxiter=maxnumiter,
+                            fprime=fprime,
+                        )
+                    )
                     return res
 
             def bisect_fn(s, t):
                 with RedirectStdout(_logfile):
-                    res = minpack.bisection(f, x0[0], x0[1], args=(t,)+extrafargs,
-                                        xtol=xtolval, maxiter=maxnumiter)
+                    res = minpack.bisection(
+                        f,
+                        x0[0],
+                        x0[1],
+                        args=(t,) + extrafargs,
+                        xtol=xtolval,
+                        maxiter=maxnumiter,
+                    )
                     return res
 
             def steffe_fn(s, t):
                 with RedirectStdout(_logfile):
-                    res = minpack.fixed_point(f, x0, args=(t,)+extrafargs,
-                                            xtol=xtolval, maxiter=maxnumiter)
+                    res = minpack.fixed_point(
+                        f, x0, args=(t,) + extrafargs, xtol=xtolval, maxiter=maxnumiter
+                    )
                     return res
 
             def fsolve_fn(s, t):
                 with RedirectStdout(_logfile):
-                    res = minpack.fsolve(f, x0, args=(t,)+extrafargs,
-                                        xtol=xtolval, maxfev=maxnumiter,
-                                        fprime=fprime)
+                    res = minpack.fsolve(
+                        f,
+                        x0,
+                        args=(t,) + extrafargs,
+                        xtol=xtolval,
+                        maxfev=maxnumiter,
+                        fprime=fprime,
+                    )
                     return res
 
     except TypeError as e:
-        if solmethod == 'bisect':
+        if solmethod == "bisect":
             infostr = " (did you specify a pair for x0?)"
         else:
             infostr = ""
-        raise TypeError("Could not create function" +infostr + ": "+str(e))
+        raise TypeError("Could not create function" + infostr + ": " + str(e))
 
-    if solmethod == 'newton':
+    if solmethod == "newton":
         return newton_fn
-    elif solmethod == 'bisect':
+    elif solmethod == "bisect":
         if fprime is not None:
             print("Warning: fprime argument unused for bisection method")
         return bisect_fn
-    elif solmethod == 'steffe':
+    elif solmethod == "steffe":
         if fprime is not None:
             print("Warning: fprime argument unused for aitken method")
         return steffe_fn
-    elif solmethod == 'fsolve':
+    elif solmethod == "fsolve":
         return fsolve_fn
     else:
         raise ValueError("Unrecognized type of implicit function solver")
@@ -267,7 +365,7 @@ def findClosestPointIndex(pt, target, tol=Inf, in_order=True):
     except AttributeError:
         pass
 
-    dists = [norm(pt-x, normord) for x in target]
+    dists = [norm(pt - x, normord) for x in target]
     index = argmin(dists)
 
     if in_order:
@@ -285,19 +383,21 @@ def findClosestPointIndex(pt, target, tol=Inf, in_order=True):
             # insertion offset index
             ins_off = 0
 
-        pta = array([pt]) # extra [] to get compatible shape for concat
+        pta = array([pt])  # extra [] to get compatible shape for concat
         dim_range = list(range(target.shape[1]))
         # neighborhood
-        nhood = target[index-lo_off:index+hi_off]
-        if all(ismonotonic(nhood[:,d]) for d in dim_range):
+        nhood = target[index - lo_off : index + hi_off]
+        if all(ismonotonic(nhood[:, d]) for d in dim_range):
             # try inserting at index, otherwise at index+1
             new_nhood = concatenate((nhood[:ins_off], pta, nhood[ins_off:]))
-            if not all(ismonotonic(new_nhood[:,d]) for d in dim_range):
+            if not all(ismonotonic(new_nhood[:, d]) for d in dim_range):
                 ins_off += 1
                 index += 1
                 new_nhood = concatenate((nhood[:ins_off], pta, nhood[ins_off:]))
-                if not all(ismonotonic(new_nhood[:,d]) for d in dim_range):
-                    raise ValueError("Cannot add point in order, try deactivating the in_order option")
+                if not all(ismonotonic(new_nhood[:, d]) for d in dim_range):
+                    raise ValueError(
+                        "Cannot add point in order, try deactivating the in_order option"
+                    )
 
     if in_order:
         return index
@@ -329,65 +429,75 @@ def findClosestArray(input_array, target_array, tol):
       tol:          a tolerance
 
     Returns:
-      closest_indices:  the array of indices of elements in input_array that are closest to elements in target_array
+      closest_indices:  the array of indices of elements in input_array that are closest
+      to elements in target_array
 
     Author: Gerry Wiener, 2004
     Version 1.0
     """
     # NOT RETURNED IN THIS VERSION:
-#       accept_indices:  the indices of elements in target_array that have a match in input_array within tolerance
-#      reject_indices:  the indices of elements in target_array that do not have a match in input_array within tolerance
+    # accept_indices: the indices of elements in target_array
+    # that have a match in input_array within tolerance
+    # reject_indices: the indices of elements in target_array
+    # that do not have a match in input_array within tolerance
 
     input_array_len = len(input_array)
-    closest_indices = searchsorted(input_array, target_array) # determine the locations of target_array in input_array
-#    acc_rej_indices = [-1] * len(target_array)
+    closest_indices = searchsorted(
+        input_array, target_array
+    )  # determine the locations of target_array in input_array
+    #    acc_rej_indices = [-1] * len(target_array)
     curr_tol = [tol] * len(target_array)
 
     est_tol = 0.0
     for i in range(len(target_array)):
-        best_off = 0          # used to adjust closest_indices[i] for best approximating element in input_array
+        best_off = (
+            0
+        )
+        # used to adjust closest_indices[i] for best approximating element in input_array
 
         if closest_indices[i] >= input_array_len:
-            # the value target_array[i] is >= all elements in input_array so check whether it is within tolerance of the last element
+            # the value target_array[i] is >= all elements in input_array so check
+            # whether it is within tolerance of the last element
             closest_indices[i] = input_array_len - 1
             est_tol = target_array[i] - input_array[closest_indices[i]]
             if est_tol < curr_tol[i]:
                 curr_tol[i] = est_tol
-#                acc_rej_indices[i] = i
+        #                acc_rej_indices[i] = i
         elif target_array[i] == input_array[closest_indices[i]]:
             # target_array[i] is in input_array
             est_tol = 0.0
             curr_tol[i] = 0.0
-#            acc_rej_indices[i] = i
+        #            acc_rej_indices[i] = i
         elif closest_indices[i] == 0:
             # target_array[i] is <= all elements in input_array
             est_tol = input_array[0] - target_array[i]
             if est_tol < curr_tol[i]:
                 curr_tol[i] = est_tol
-#                acc_rej_indices[i] = i
+        #                acc_rej_indices[i] = i
         else:
-            # target_array[i] is between input_array[closest_indices[i]-1] and input_array[closest_indices[i]]
+            # target_array[i] is between input_array[closest_indices[i]-1] and
+            # input_array[closest_indices[i]]
             # and closest_indices[i] must be > 0
             top_tol = input_array[closest_indices[i]] - target_array[i]
-            bot_tol = target_array[i] - input_array[closest_indices[i]-1]
+            bot_tol = target_array[i] - input_array[closest_indices[i] - 1]
             if bot_tol <= top_tol:
                 est_tol = bot_tol
-                best_off = -1           # this is the only place where best_off != 0
+                best_off = -1  # this is the only place where best_off != 0
             else:
                 est_tol = top_tol
 
             if est_tol < curr_tol[i]:
                 curr_tol[i] = est_tol
-#                acc_rej_indices[i] = i
+        #                acc_rej_indices[i] = i
 
         if est_tol <= tol:
             closest_indices[i] += best_off
 
-#    accept_indices = compress(greater(acc_rej_indices, -1),
-#                                       acc_rej_indices)
-#    reject_indices = compress(equal(acc_rej_indices, -1),
-#                                       arange(len(acc_rej_indices)))
-    return closest_indices #, accept_indices, reject_indices)
+    #    accept_indices = compress(greater(acc_rej_indices, -1),
+    #                                       acc_rej_indices)
+    #    reject_indices = compress(equal(acc_rej_indices, -1),
+    #                                       arange(len(acc_rej_indices)))
+    return closest_indices  # , accept_indices, reject_indices)
 
 
 def find(x, v, next_largest=1, indices=None):
@@ -406,21 +516,26 @@ def find(x, v, next_largest=1, indices=None):
     function if you have pre-calculated indices=argsort(x).
     """
     if indices is None:
-        indices=argsort(x)
-    xs=take(x, indices, axis=0)
-    assert next_largest in [0,1], "next_largest must be 0 or 1"
-    eqmask=(xs==v).tolist()
+        indices = argsort(x)
+    xs = take(x, indices, axis=0)
+    assert next_largest in [0, 1], "next_largest must be 0 or 1"
+    eqmask = (xs == v).tolist()
     try:
         ix = eqmask.index(1)
     except ValueError:
         if next_largest:
-            mask=(xs<v).tolist()
+            mask = (xs < v).tolist()
         else:
-            mask=(xs>v).tolist()
+            mask = (xs > v).tolist()
         try:
-            ix=min([max([0,mask.index(1-next_largest)+next_largest-1]),len(mask)-1])
+            ix = min(
+                [
+                    max([0, mask.index(1 - next_largest) + next_largest - 1]),
+                    len(mask) - 1,
+                ]
+            )
         except ValueError:
-            ix = 0+next_largest-1
+            ix = 0 + next_largest - 1
     return indices[ix]
 
 
@@ -444,28 +559,32 @@ def orderEventData(edict, evnames=None, nonames=False, bytime=False):
     # put times as first tuple entry of etuplelist
     if nonames:
         alltlist = []
-        for (evname,tlist) in edict.items():
+        for (evname, tlist) in edict.items():
             if evname in evnames:
                 alltlist.extend(tlist)
         alltlist.sort()
         return alltlist
     else:
         etuplelist = []
-        for (evname,tlist) in edict.items():
+        for (evname, tlist) in edict.items():
             if evname in evnames:
-                etuplelist.extend([(t,evname) for t in tlist])
+                etuplelist.extend([(t, evname) for t in tlist])
         # sort by times
         etuplelist.sort()
         if bytime:
             return etuplelist
         else:
             # swap back to get event names as first tuple entry
-            return [(evname,t) for (t,evname) in etuplelist]
+            return [(evname, t) for (t, evname) in etuplelist]
 
-## ------------------------------------------------------------
-## Generator wrapping utilities
 
-def make_RHS_wrap(gen, xdict_base, x0_names, use_gen_params=False, overflow_penalty=1e4):
+# ------------------------------------------------------------
+# Generator wrapping utilities
+
+
+def make_RHS_wrap(
+    gen, xdict_base, x0_names, use_gen_params=False, overflow_penalty=1e4
+):
     """Return function wrapping Generator argument gen's RHS function,
     but restricting input and output dimensions to those specified by
     x0_names. All other variable values will be given by those in xdict_base.
@@ -487,30 +606,34 @@ def make_RHS_wrap(gen, xdict_base, x0_names, use_gen_params=False, overflow_pena
     NB: xdict_base will be copied as it will be updated in the wrapped
     function."""
     var_ix_map = invertMap(gen.funcspec.vars)
-    x0_names.sort()   # ensures sorted
+    x0_names.sort()  # ensures sorted
     x0_ixs = [var_ix_map[xname] for xname in x0_names]
     dim = len(x0_names)
     xdict = xdict_base.copy()
     if use_gen_params:
+
         def Rhs_wrap(x, t):
             xdict.update(dict(zip(x0_names, x)))
             try:
                 return take(gen.Rhs(t, xdict, gen.pars), x0_ixs)
             except (OverflowError, ValueError):
-                return array([overflow_penalty]*dim)
+                return array([overflow_penalty] * dim)
 
     else:
+
         def Rhs_wrap(x, t, pdict):
             xdict.update(dict(zip(x0_names, x)))
             try:
                 return take(gen.Rhs(t, xdict, pdict), x0_ixs)
             except (OverflowError, ValueError):
-                return array([overflow_penalty]*dim)
+                return array([overflow_penalty] * dim)
 
     return Rhs_wrap
 
 
-def make_Jac_wrap(gen, xdict_base, x0_names, use_gen_params=False, overflow_penalty=1e4):
+def make_Jac_wrap(
+    gen, xdict_base, x0_names, use_gen_params=False, overflow_penalty=1e4
+):
     """Return function wrapping Generator argument gen's Jacobian function,
     but restricting input and output dimensions to those specified by
     x0_names. All other variable values will be given by those in xdict_base.
@@ -532,44 +655,53 @@ def make_Jac_wrap(gen, xdict_base, x0_names, use_gen_params=False, overflow_pena
     if not gen.haveJacobian():
         raise ValueError("Jacobian not defined")
     var_ix_map = invertMap(gen.funcspec.vars)
-    x0_names.sort()   # ensures sorted
+    x0_names.sort()  # ensures sorted
     x0_ixs = [var_ix_map[xname] for xname in x0_names]
     dim = len(x0_names)
     xdict = xdict_base.copy()
     if use_gen_params:
+
         def Jac_wrap(x, t):
             xdict.update(dict(zip(x0_names, x)))
             try:
-                return take(take(gen.Jacobian(t, xdict, gen.pars), x0_ixs,0), x0_ixs,1)
+                return take(
+                    take(gen.Jacobian(t, xdict, gen.pars), x0_ixs, 0), x0_ixs, 1
+                )
             except (OverflowError, ValueError):
-                return array([overflow_penalty]*dim)
+                return array([overflow_penalty] * dim)
+
     else:
+
         def Jac_wrap(x, t, pdict):
             xdict.update(dict(zip(x0_names, x)))
             try:
-                return take(take(gen.Jacobian(t, xdict, pdict), x0_ixs,0), x0_ixs,1)
+                return take(take(gen.Jacobian(t, xdict, pdict), x0_ixs, 0), x0_ixs, 1)
             except (OverflowError, ValueError):
-                return array([overflow_penalty]*dim)
+                return array([overflow_penalty] * dim)
 
     return Jac_wrap
 
 
-## ------------------------------------------------------------
+# ------------------------------------------------------------
 
 # User-interaction utilities
+
 
 def progressBar(i, total, width=50):
     """Print an increasing number of dashes up to given width, reflecting
     i / total fraction of progress. Prints and refreshes on one line.
     """
-    percent = float(i)/total
-    dots = int(percent*width)
-    progress = str('[').ljust(dots+1, '-')
-    sys.stdout.write('\r'+progress.ljust(width, ' ')+str('] %.2f%%' % (percent*100.)))
+    percent = float(i) / total
+    dots = int(percent * width)
+    progress = str("[").ljust(dots + 1, "-")
+    sys.stdout.write(
+        "\r" + progress.ljust(width, " ") + str("] %.2f%%" % (percent * 100.0))
+    )
     sys.stdout.flush()
 
 
-## ------------------------------------------------------------
+# ------------------------------------------------------------
+
 
 def saveObjects(objlist, filename, force=False):
     """Store PyDSTool objects to file. Argument should be a tuple or list,
@@ -585,21 +717,20 @@ def saveObjects(objlist, filename, force=False):
     if not force:
         if os.path.isfile(filename):
             raise ValueError("File '" + filename + "' already exists")
-    pklfile = open(filename, 'wb')
+    pklfile = open(filename, "wb")
     opt = 0
     if not isinstance(objlist, list):
-        objlist=[objlist]
+        objlist = [objlist]
     for obj in objlist:
         try:
             pickle.dump(obj, pklfile, opt)
         except:
-            if hasattr(obj, 'name'):
-                print("Failed to save '%s'"%obj.name)
+            if hasattr(obj, "name"):
+                print("Failed to save '%s'" % obj.name)
             else:
-                print("Failed to save object '%s'"%str(obj))
+                print("Failed to save object '%s'" % str(obj))
             raise
     pklfile.close()
-
 
 
 def loadObjects(filename, namelist=None):
@@ -628,7 +759,7 @@ def loadObjects(filename, namelist=None):
             raise TypeError("namelist must be list of strings or singleton string")
     if not isUniqueSeq(namelist):
         raise ValueError("Names must only appear once in namelist argument")
-    pklfile = open(filename, 'rb')
+    pklfile = open(filename, "rb")
     if namelist == []:
         getall = True
     else:
@@ -641,13 +772,13 @@ def loadObjects(filename, namelist=None):
                 objlist.append(pickle.load(pklfile))
             else:
                 tempobj = pickle.load(pklfile)
-                if hasattr(tempobj, 'name'):
+                if hasattr(tempobj, "name"):
                     if tempobj.name in namelist:
                         objlist.append(tempobj)
         except EOFError:
             notDone = False
         except:
-            print("Error in un-pickling %s:"%filename)
+            print("Error in un-pickling %s:" % filename)
             print("Was the object created with an old version of PyDSTool?")
             pklfile.close()
             raise
@@ -668,20 +799,24 @@ def intersect(a, b):
     Returns a list that includes repetitions if they occur in the inputs."""
     return [e for e in a if e in b]
 
+
 def union(a, b):
     """Find union of two lists, sequences, etc.
     Returns a list that includes repetitions if they occur in the input lists.
     """
-    return list(a)+list(b)
+    return list(a) + list(b)
+
 
 def remain(a, b):
     """Find remainder of two lists, sequences, etc., after intersection.
     Returns a list that includes repetitions if they occur in the inputs."""
     return [e for e in a if e not in b]
 
+
 def compareList(a, b):
     """Compare elements of lists, ignoring order (like sets)."""
-    return len(intersect(a,b))==len(a)==len(b)
+    return len(intersect(a, b)) == len(a) == len(b)
+
 
 def cartesianProduct(a, b):
     """Returns the cartesian product of the sequences."""
@@ -689,6 +824,7 @@ def cartesianProduct(a, b):
     for i in a:
         ret.extend([(i, j) for j in b])
     return ret
+
 
 def arclength(pts):
     """
@@ -698,11 +834,12 @@ def arclength(pts):
     x0 = pts[0]
     arclength = np.zeros(len(pts))
     for i, x in enumerate(pts[1:]):
-        arclength[i+1] = np.linalg.norm(x - pts[i]) + arclength[i]
+        arclength[i + 1] = np.linalg.norm(x - pts[i]) + arclength[i]
     return arclength
 
 
 # ------------------------
+
 
 def distutil_destination():
     """Internal utility that makes the goofy destination directory string so that PyDSTool
@@ -713,22 +850,25 @@ def distutil_destination():
     name you find that is being used.
     """
     import scipy
+
     osname = str.lower(platform.system())
     pyname = platform.python_version_tuple()
     machinename = platform.machine()
-    if osname == 'linux':
-        destdir = 'src.'+osname+'-'+machinename+'-'+pyname[0] + '.' + pyname[1]
-    elif osname in ['darwin', 'freebsd']:
+    if osname == "linux":
+        destdir = (
+            "src." + osname + "-" + machinename + "-" + pyname[0] + "." + pyname[1]
+        )
+    elif osname in ["darwin", "freebsd"]:
         # use the same version string as numpy.distutils.core.setup used by ContClass.CompileAutoLib
         osver = get_platform()
-        destdir = 'src.' + osver + '-' +pyname[0] + '.' + pyname[1]
-    elif osname == 'windows':
-        destdir = 'src.win32-'+pyname[0]+'.'+pyname[1]
+        destdir = "src." + osver + "-" + pyname[0] + "." + pyname[1]
+    elif osname == "windows":
+        destdir = "src.win32-" + pyname[0] + "." + pyname[1]
     else:
-        destdir = ''
+        destdir = ""
     # TEMP for debugging
-    #import os
-    #os.system('echo %s > temp_dist.txt' % (os.path.abspath('.') + " : " + destdir))
+    # import os
+    # os.system('echo %s > temp_dist.txt' % (os.path.abspath('.') + " : " + destdir))
     return destdir
 
 
@@ -741,7 +881,9 @@ def architecture():
     Returns integer 32 or 64.
     """
     import struct
+
     return struct.calcsize("P") * 8
+
 
 def extra_arch_arg(arglist):
     """
@@ -750,16 +892,24 @@ def extra_arch_arg(arglist):
     it performs the identity function.
     """
     if architecture() == 32:
-        return arglist + ['-m32']
+        return arglist + ["-m32"]
     else:
         return arglist
 
 
 def get_lib_extension():
     this = platform.system()
-    if this == 'Windows':
+    if this == "Windows":
         return ".pyd"
-    elif this not in ['Linux', 'IRIX', 'Solaris', 'SunOS', 'MacOS', 'Darwin', 'FreeBSD']:
+    elif this not in [
+        "Linux",
+        "IRIX",
+        "Solaris",
+        "SunOS",
+        "MacOS",
+        "Darwin",
+        "FreeBSD",
+    ]:
         print("Shared library extension not tested on this platform.")
         print("If this process fails please report the errors to the")
         print("developers.")

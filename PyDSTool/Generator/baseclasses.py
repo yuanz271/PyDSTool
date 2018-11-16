@@ -2,14 +2,28 @@
 from __future__ import division, absolute_import, print_function
 
 from .allimports import *
-from PyDSTool.utils import *
-from PyDSTool.common import *
-from PyDSTool.Symbolic import ensureStrArgDict, Quantity, QuantSpec, mathNameMap
-from PyDSTool.Trajectory import Trajectory
-from PyDSTool.parseUtils import symbolMapClass, readArgs
-from PyDSTool.Variable import Variable, iscontinuous
-from PyDSTool.Points import Pointset
-import PyDSTool.Events as Events
+from ..utils import *
+from ..common import *
+from ..common import (
+    _num_types,
+    _num_equivtype,
+    _float_types,
+    _real_types,
+    _int_types,
+    _seq_types,
+    _num_type2name,
+    _num_name2type,
+    _num_name2equivtypes,
+    _all_float,
+    _all_int,
+    _all_complex,
+)
+from ..Symbolic import ensureStrArgDict, Quantity, QuantSpec, mathNameMap
+from ..Trajectory import Trajectory
+from ..parseUtils import symbolMapClass, readArgs
+from ..Variable import Variable, iscontinuous
+from ..Points import Pointset
+from .. import Events
 
 # Other imports
 from numpy import Inf, NaN, isfinite, sometrue, alltrue

@@ -38,6 +38,20 @@ from __future__ import absolute_import, print_function
 # PyDSTool imports
 from .errors import *
 from .common import *
+from .common import (
+    _num_types,
+    _num_equivtype,
+    _float_types,
+    _real_types,
+    _int_types,
+    _seq_types,
+    _num_type2name,
+    _num_name2type,
+    _num_name2equivtypes,
+    _all_float,
+    _all_int,
+    _all_complex,
+)
 from .utils import info, remain, intersect
 from . import Model, Generator, ModelSpec, Symbolic, Events, ModelContext
 from .parseUtils import symbolMapClass, NAMESEP, isNumericToken
@@ -2189,7 +2203,7 @@ class GenTransform(object):
     def findStaticVars(self):
         """Find RHSfuncSpec variables with RHS=0"""
         return [v for v in self.trans_gen.modelspec.search(Var) if \
-                gen.modelspec[v].spec.specStr == '0']
+                self.trans_gen.modelspec[v].spec.specStr == '0']
 
     def changeTargetGen(self, target):
         """Change target generator type. Target is a string name of the Generator

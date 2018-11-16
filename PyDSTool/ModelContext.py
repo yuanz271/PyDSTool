@@ -12,7 +12,8 @@ import numpy as npy
 
 # PyDSTool imports
 from . import Events, ModelSpec, Symbolic, Trajectory
-from . import utils, common, parseUtils
+from . import utils, common
+from .parseUtils import symbolMapClass
 from .errors import *
 
 # --------------------
@@ -993,7 +994,7 @@ class ModelInterface(dsInterface):
         try:
             self.conditions
         except AttributeError:
-            self.setup_conditions(conditions, self.get_test_traj())
+            self.setup_conditions(None, self.get_test_traj())
         force = force or target.test_traj is None
         if force:
             # discard returned traj here (still accessible via target.test_traj)

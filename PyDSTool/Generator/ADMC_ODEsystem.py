@@ -2,11 +2,26 @@
 from __future__ import division, absolute_import, print_function
 
 from .allimports import *
-from PyDSTool.Generator import ODEsystem as ODEsystem
+from . import ODEsystem
+from ..parseUtils import addArgToCalls, wrapArgInCall
 from .baseclasses import Generator, theGenSpecHelper
-from PyDSTool.utils import *
-from PyDSTool.common import *
-from PyDSTool.integrator import integrator
+from ..utils import *
+from ..common import *
+from ..common import (
+    _num_types,
+    _num_equivtype,
+    _float_types,
+    _real_types,
+    _int_types,
+    _seq_types,
+    _num_type2name,
+    _num_name2type,
+    _num_name2equivtypes,
+    _all_float,
+    _all_int,
+    _all_complex,
+)
+from ..integrator import integrator
 
 # Other imports
 from numpy import Inf, NaN, isfinite, sometrue, alltrue, isnan, zeros
@@ -481,7 +496,7 @@ class ADMC_ODEsystem(ODEsystem):
             numevs = 0
         else:
             numevs = len(self._eventNames)
-        for ev in self._eventNames:
+        for evname in self._eventNames:
             ev = self.eventstruct.events[evname]
             evfullfn = ""
             assert isinstance(ev, MatlabEvent), "ADMC can only accept matlab events"

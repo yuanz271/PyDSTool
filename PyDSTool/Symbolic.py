@@ -62,20 +62,62 @@ import six
 from six.moves import cPickle
 from .Interval import Interval
 from .common import *
+from .common import (
+    _num_types,
+    _num_equivtype,
+    _float_types,
+    _real_types,
+    _int_types,
+    _seq_types,
+    _num_type2name,
+    _num_name2type,
+    _num_name2equivtypes,
+    _all_float,
+    _all_int,
+    _all_complex,
+)
 from .utils import info as utils_info
 from .parseUtils import *
 from .errors import *
 
-#from math import *
+# from math import *
 from .utils import *
 from numpy import array, Inf, NaN, isfinite, mod, sum, float64, int32
 from numpy import sometrue, alltrue
+
 # replacements of math functions so that expr2fun etc. produce vectorizable math functions
-from numpy import arccos, arcsin, arctan, arctan2, arccosh, arcsinh, arctanh, \
-     ceil, cos, cosh, exp, fabs, floor, fmod, frexp, hypot, ldexp, log, log10, \
-     modf, power, sin, sinh, sqrt, tan, tanh
+from numpy import (
+    arccos,
+    arcsin,
+    arctan,
+    arctan2,
+    arccosh,
+    arcsinh,
+    arctanh,
+    ceil,
+    cos,
+    cosh,
+    exp,
+    fabs,
+    floor,
+    fmod,
+    frexp,
+    hypot,
+    ldexp,
+    log,
+    log10,
+    modf,
+    power,
+    sin,
+    sinh,
+    sqrt,
+    tan,
+    tanh,
+)
+
 # for compatibility with numpy 1.0.X
 from math import degrees, radians
+
 # constants
 from math import pi, e
 
@@ -96,39 +138,59 @@ pow = power
 ### Constants
 # determine what "globals" will be for math evaluations in _eval method
 math_dir = dir(math)
-math_globals = dict(zip(math_dir,[getattr(math, m) for m in math_dir]))
-math_globals['Inf'] = Inf
-math_globals['NaN'] = NaN
+math_globals = dict(zip(math_dir, [getattr(math, m) for m in math_dir]))
+math_globals["Inf"] = Inf
+math_globals["NaN"] = NaN
 
 # protected (function) names come from parseUtils.py
 # (constants are all-caps and are filtered out)
 # Adds scipy special function names *without* 'special_' prefix
 # but does not include logical infix operators from builtins
-allmathnames = [a for a in protected_mathnames + protected_randomnames + \
-                protected_scipynames + protected_numpynames + \
-                scipy_specialfns if not a.isupper()] + \
-                ['abs', 'pow', 'min', 'max', 'sum']
+allmathnames = [
+    a
+    for a in protected_mathnames
+    + protected_randomnames
+    + protected_scipynames
+    + protected_numpynames
+    + scipy_specialfns
+    if not a.isupper()
+] + ["abs", "pow", "min", "max", "sum"]
 allmathnames_symbolic = [a.title() for a in allmathnames]
 
 # the definitions for the math names are made lower down in this file
 mathNameMap = dict(zip(allmathnames_symbolic, allmathnames))
 inverseMathNameMap = dict(zip(allmathnames, allmathnames_symbolic))
 
-specTypes = ('RHSfuncSpec', 'ImpFuncSpec', 'ExpFuncSpec')
+specTypes = ("RHSfuncSpec", "ImpFuncSpec", "ExpFuncSpec")
 
 
 # --------------------------------------------------------------------------
 ### Exports
-_functions = ['isMultiDef', 'isMultiRef', 'isMultiDefClash', 'checkbraces',
-              'findMultiRefs', 'processMultiRef', 'evalMultiRefToken',
-              'expr2fun', 'subs', 'ensureStrArgDict', 'ensureQlist',
-##              'loadDiffs', 'saveDiffs',
-              'Diff', 'DiffStr', 'prepJacobian']
+_functions = [
+    "isMultiDef",
+    "isMultiRef",
+    "isMultiDefClash",
+    "checkbraces",
+    "findMultiRefs",
+    "processMultiRef",
+    "evalMultiRefToken",
+    "expr2fun",
+    "subs",
+    "ensureStrArgDict",
+    "ensureQlist",
+    ##              'loadDiffs', 'saveDiffs',
+    "Diff",
+    "DiffStr",
+    "prepJacobian",
+]
 
-_classes = ['QuantSpec', 'Quantity', 'Var', 'Par', 'Input', 'Fun']
+_classes = ["QuantSpec", "Quantity", "Var", "Par", "Input", "Fun"]
 
-_constants = ['specTypes', 'allmathnames_symbolic', 'allmathnames'] \
-                + allmathnames_symbolic + ['mathNameMap', 'inverseMathNameMap']
+_constants = (
+    ["specTypes", "allmathnames_symbolic", "allmathnames"]
+    + allmathnames_symbolic
+    + ["mathNameMap", "inverseMathNameMap"]
+)
 
 __all__ = _functions + _classes + _constants
 
@@ -136,7 +198,7 @@ __all__ = _functions + _classes + _constants
 # -----------------------------------------------------------------------------
 # create namemap for title-case to lower case for evaluation
 # to float attempt
-feval_map_const = {'e': repr(e), 'pi': repr(pi)}
+feval_map_const = {"e": repr(e), "pi": repr(pi)}
 feval_map_symb = {}
 for symb in allmathnames_symbolic:
     feval_map_symb[symb] = symb.lower()
@@ -147,12 +209,12 @@ for symb in allmathnames_symbolic:
 ## model specs, by substituting overloaded objects with the same names in
 ## their place.
 
-mathlookup = {}.fromkeys(protected_mathnames, 'math.')
-randomlookup = {}.fromkeys(protected_randomnames, 'random.')
-builtinlookup = {'abs': '', 'pow': '', 'max': '', 'min': '', 'sum': ''}
-numpylookup = {}.fromkeys(protected_numpynames, 'numpy.')
-scipylookup = {}.fromkeys(protected_scipynames, 'scipy.')
-scipylookup.update( {}.fromkeys(scipy_specialfns, 'scipy.special.') )
+mathlookup = {}.fromkeys(protected_mathnames, "math.")
+randomlookup = {}.fromkeys(protected_randomnames, "random.")
+builtinlookup = {"abs": "", "pow": "", "max": "", "min": "", "sum": ""}
+numpylookup = {}.fromkeys(protected_numpynames, "numpy.")
+scipylookup = {}.fromkeys(protected_scipynames, "scipy.")
+scipylookup.update({}.fromkeys(scipy_specialfns, "scipy.special."))
 modlookup = {}
 modlookup.update(mathlookup)
 modlookup.update(randomlookup)
@@ -163,8 +225,8 @@ modlookup.update(numpylookup)
 # only rename actual functions (or callable objects)
 
 # DEBUG VERSION
-#funcnames = []
-#for n in allmathnames:
+# funcnames = []
+# for n in allmathnames:
 #    try:
 #        f = eval(modlookup[n]+n)
 #    except:
@@ -175,28 +237,28 @@ modlookup.update(numpylookup)
 #        funcnames.append(n)
 
 # REGULAR VERSION
-funcnames = [n for n in allmathnames if hasattr(eval(modlookup[n]+n),
-                                                "__call__")]
+funcnames = [n for n in allmathnames if hasattr(eval(modlookup[n] + n), "__call__")]
 
 # wrapper and overloader class
 class _mathobj(object):
     def __init__(self, name):
         self.name = name.title()
         if name not in funcnames:
-            raise ValueError("This class is intended for mathematical "
-                             "functions only")
+            raise ValueError(
+                "This class is intended for mathematical " "functions only"
+            )
 
     def __call__(self, *argtuple):
         args = list(argtuple)
-        isQuantity = [compareClassAndBases(a,Quantity) for a in args]
-        isQuantSpec = [compareClassAndBases(a,QuantSpec) for a in args]
+        isQuantity = [compareClassAndBases(a, Quantity) for a in args]
+        isQuantSpec = [compareClassAndBases(a, QuantSpec) for a in args]
         if len(args) == 0:
             return QuantSpec("__result__", self.name)
-        elif sometrue(isQuantity+isQuantSpec):
+        elif sometrue(isQuantity + isQuantSpec):
             if not sometrue(isQuantity):
                 # can only make this evaluate to a number if args is only
                 # made up of numbers and QuantSpecs that are in allmathnames.
-                convert = True   # initial value
+                convert = True  # initial value
                 for i in range(len(args)):
                     if isQuantSpec[i]:
                         if args[i].subjectToken in allmathnames:
@@ -207,10 +269,15 @@ class _mathobj(object):
                             # non-mathname QS then no conversion -- return a QS
                             symbs = args[i].usedSymbols
                             allnonnumbers = [n for n in symbs if isNameToken(n)]
-                            if len(allnonnumbers) > 0 \
-                               and alltrue([n in allmathnames for n in allnonnumbers]):
-                                namemap = dict(zip(allnonnumbers,
-                                               [a.lower() for a in allnonnumbers]))
+                            if len(allnonnumbers) > 0 and alltrue(
+                                [n in allmathnames for n in allnonnumbers]
+                            ):
+                                namemap = dict(
+                                    zip(
+                                        allnonnumbers,
+                                        [a.lower() for a in allnonnumbers],
+                                    )
+                                )
                                 args[i].mapNames(namemap)
                                 args[i] = eval(args[i]())
                             else:
@@ -218,15 +285,18 @@ class _mathobj(object):
                                 break
             else:
                 convert = False
-            argstr = ", ".join(map(str,args))
+            argstr = ", ".join(map(str, args))
             if convert:
                 try:
                     return eval(self.name.lower())(*args)
                 except TypeError:
-                    print("Failed to evaluate function %s on args:"%self.name.lower() + argstr)
+                    print(
+                        "Failed to evaluate function %s on args:" % self.name.lower()
+                        + argstr
+                    )
                     raise
             else:
-                return QuantSpec("__result__", self.name + "(" + argstr +")")
+                return QuantSpec("__result__", self.name + "(" + argstr + ")")
         else:
             arglist = []
             for a in args:
@@ -237,10 +307,10 @@ class _mathobj(object):
             try:
                 return float(eval(self.name.lower())(*arglist))
             except NameError:
-                argstr = ", ".join(map(str,args))
-                return QuantSpec("__result__", self.name + "(" + argstr +")")
+                argstr = ", ".join(map(str, args))
+                return QuantSpec("__result__", self.name + "(" + argstr + ")")
             except TypeError:
-                print("Error evaluating %s on args:"%self.name.lower() + args)
+                print("Error evaluating %s on args:" % self.name.lower() + args)
                 raise
 
     def __str__(self):
@@ -252,15 +322,16 @@ class _mathobj(object):
 
 # now assign all the function names to _mathobj versions
 for f in funcnames:
-    if f == 'random':
+    if f == "random":
         # skip this because it's also a module name and it messes around
         # with the namespace too much
         continue
-    six.exec_(str(f).title() + " = _mathobj('"+f+"')")
+    six.exec_(str(f).title() + " = _mathobj('" + f + "')")
     math_globals[str(f).title()] = eval(str(f).title())
 # assignment of constants' names continues after QuantSpec is defined
 
 # -------------------------------------------------------------------------
+
 
 def resolveSpecTypeCombos(t1, t2):
     """Resolve Quantity and QuantSpec types when combined.
@@ -269,18 +340,18 @@ def resolveSpecTypeCombos(t1, t2):
      ExpFuncSpec o RHSfuncSpec -> RHSfuncSpec
      ImpFuncSpec o RHSfuncSpec -> RHSfuncSpec (should this be an error?)
      ImpFuncSpec o ExpFuncSpec -> ImpFuncSpec"""
-    if t1=='RHSfuncSpec' or t2=='RHSfuncSpec':
-        return 'RHSfuncSpec'
-    elif t1=='ImpFuncSpec' or t2=='ImpFuncSpec':
-        return 'ImpFuncSpec'
+    if t1 == "RHSfuncSpec" or t2 == "RHSfuncSpec":
+        return "RHSfuncSpec"
+    elif t1 == "ImpFuncSpec" or t2 == "ImpFuncSpec":
+        return "ImpFuncSpec"
     else:
-        return 'ExpFuncSpec'
+        return "ExpFuncSpec"
 
 
 def getdim(s):
     """If s is a representation of a vector, return the dimension."""
-    if len(s) > 4 and s[0]=='[' and s[-1]==']':
-        return len(splitargs(s[1:-1], ['(','['], [')',']']))
+    if len(s) > 4 and s[0] == "[" and s[-1] == "]":
+        return len(splitargs(s[1:-1], ["(", "["], [")", "]"]))
     else:
         return 0
 
@@ -290,8 +361,8 @@ def strIfSeq(x):
     that sequence, otherwise return the argument untouched."""
     if isinstance(x, _seq_types):
         if len(x) > 0:
-            xstrlist = list(map(str,x))
-            return '['+",".join(xstrlist)+']'
+            xstrlist = list(map(str, x))
+            return "[" + ",".join(xstrlist) + "]"
         else:
             return x
     else:
@@ -302,7 +373,7 @@ def ensureQlist(thelist):
     o = []
     for s in thelist:
         if isinstance(s, str):
-            o.append(QuantSpec('__dummy__', s))
+            o.append(QuantSpec("__dummy__", s))
         elif isinstance(s, QuantSpec) or isinstance(s, Quantity):
             o.append(s)
         else:
@@ -332,31 +403,33 @@ def ensureStrArgDict(d, renderForCode=True):
                 o.update(ensureStrArgDict(q))
         else:
             try:
-                if hasattr(d, 'signature'):
+                if hasattr(d, "signature"):
                     # q is a Fun Quantity
                     if renderForCode:
                         o[d.name] = (d.signature, str(d.spec.renderForCode()))
                     else:
                         o[d.name] = (d.signature, d.spec.specStr)
-                elif hasattr(d, 'name'):
+                elif hasattr(d, "name"):
                     # d is any other type of Quantity
                     if renderForCode:
                         o[d.name] = str(d.spec.renderForCode())
                     else:
                         o[d.name] = d.spec.specStr
-                elif hasattr(d, 'subjectToken'):
+                elif hasattr(d, "subjectToken"):
                     # d is a QuantSpec
                     if renderForCode:
                         o[d.subjectToken] = str(d.renderForCode())
                     else:
                         o[d.subjectToken] = d.specStr
                 else:
-                    raise TypeError("Invalid type %s"%str(type(d)))
+                    raise TypeError("Invalid type %s" % str(type(d)))
             except TypeError as err:
                 print("Argument was:%s\n" % d)
-                raise TypeError("Invalid argument type: %s "%str(err) + \
-                   "or argument's values cannot be converted to key:value" + \
-                                "strings")
+                raise TypeError(
+                    "Invalid argument type: %s " % str(err)
+                    + "or argument's values cannot be converted to key:value"
+                    + "strings"
+                )
     return o
 
 
@@ -368,14 +441,17 @@ def _eval(q, math_globals, local_free, eval_at_runtime):
     try:
         val = eval(qstr, math_globals, local_free)
     except NameError as err:
-        raise ValueError("Invalid input.\nProblem was: %s"%str(err))
+        raise ValueError("Invalid input.\nProblem was: %s" % str(err))
     except TypeError as err:
         # trap getitem or call error for string version of object
         # try without runtime components, if any
         if eval_at_runtime != []:
             try:
-                val = eval(qstr, math_globals,
-                           filteredDict(local_free, eval_at_runtime, neg=True))
+                val = eval(
+                    qstr,
+                    math_globals,
+                    filteredDict(local_free, eval_at_runtime, neg=True),
+                )
             except (NameError, TypeError):
                 val = q
         else:
@@ -392,27 +468,38 @@ def _eval(q, math_globals, local_free, eval_at_runtime):
 
 def _propagate_str_eval(s):
     if isinstance(s, list):
-        return "["+",".join([_propagate_str_eval(s_el) for s_el in s])+"]"
+        return "[" + ",".join([_propagate_str_eval(s_el) for s_el in s]) + "]"
     elif isinstance(s, tuple):
-        return "("+",".join([_propagate_str_eval(s_el) for s_el in s])+")"
+        return "(" + ",".join([_propagate_str_eval(s_el) for s_el in s]) + ")"
     elif isinstance(s, str):
         return s
     else:
-        raise TypeError("Don't know how to evaluate to string: %s"%(str(s)))
+        raise TypeError("Don't know how to evaluate to string: %s" % (str(s)))
 
 
 def _join_sublist(qspec, math_globals, local_free, eval_at_runtime):
     if qspec.isvector():
         sl = qspec.fromvector()
         # sl is guaranteed to be seq of QuantSpecs
-        return "["+",".join([str(_eval(q, math_globals, local_free,
-                        eval_at_runtime)) for q in sl])+"]"
+        return (
+            "["
+            + ",".join(
+                [str(_eval(q, math_globals, local_free, eval_at_runtime)) for q in sl]
+            )
+            + "]"
+        )
     else:
         return str(_eval(qspec, math_globals, local_free, eval_at_runtime))
 
 
-def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
-             for_funcspec=True, **values):
+def expr2fun(
+    qexpr,
+    ensure_args=None,
+    ensure_dynamic=None,
+    fn_name="",
+    for_funcspec=True,
+    **values
+):
     """qexpr is a string, Quantity, or QuantSpec object.
     values is a dictionary binding free names to numerical values
     or other objects defined at runtime that are in local scope.
@@ -455,6 +542,7 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
     # put in local namespace for sake of final class method's
     # alt_call use of filteredDict
     from .common import filteredDict
+
     # convert values into a dictionary of strings where possible
     valDict = {}
     # functions that will end up as methods in the wrapper
@@ -475,29 +563,39 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
             try:
                 fnsig, fndef = v
             except ValueError:
-                raise ValueError("Only pass pairs in 'values' argument that are function definitions")
+                raise ValueError(
+                    "Only pass pairs in 'values' argument that are function definitions"
+                )
             try:
                 vs = Fun(fndef, fnsig, k)
             except:
-                raise ValueError("Only pass pairs in 'values' argument that are valid function definitions")
+                raise ValueError(
+                    "Only pass pairs in 'values' argument that are valid function definitions"
+                )
             local_funcs[k] = Var(k)  # placeholder
             eval_at_runtime.append(k)
             for vfree in vs.freeSymbols:
-                if vfree not in values and vfree not in math_globals and vfree not in ensure_dynamic:
-                    raise ValueError("Free name %s inside function %s must be bound" % (vfree, k))
+                if (
+                    vfree not in values
+                    and vfree not in math_globals
+                    and vfree not in ensure_dynamic
+                ):
+                    raise ValueError(
+                        "Free name %s inside function %s must be bound" % (vfree, k)
+                    )
             embed_funcs[k] = (fnsig, fndef)
         else:
             vs = str(v)
         if isNumericToken(vs):
-            if '.' in k and for_funcspec:
-                kFS = k.replace('.','_')
+            if "." in k and for_funcspec:
+                kFS = k.replace(".", "_")
                 h_map.update({k: kFS})
             else:
                 kFS = k
             valDict[kFS] = vs
         elif not isinstance(vs, Fun):
-            if '.' in k and for_funcspec:
-                kFS = k.replace('.','_')
+            if "." in k and for_funcspec:
+                kFS = k.replace(".", "_")
                 h_map.update({k: kFS})
             else:
                 kFS = k
@@ -508,7 +606,7 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
         qexpr = qexpr.spec
     # now make a Var from the QuantSpec
     try:
-        qvar = Var(qexpr, 'q')
+        qvar = Var(qexpr, "q")
     except TypeError as e:
         raise TypeError("Invalid qexpr argument type: " + str(e))
     # eval will fail if qvar contains python syntax outside of
@@ -525,7 +623,7 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
         dyn_keys = list(ensure_dynamic.keys())
         # _pardict will only be used if for FuncSpec output
         if for_funcspec:
-            dyn_vals = ["self._pardict['%s']" %d for d in dyn_keys]
+            dyn_vals = ["self._pardict['%s']" % d for d in dyn_keys]
             dyn_map.update(dict(zip(dyn_keys, dyn_vals)))
         eval_at_runtime.extend(dyn_keys)
         for k in dyn_keys:
@@ -534,27 +632,35 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
         dyn_keys = []
 
     for fname, (fnsig, fndef) in embed_funcs.items():
-        qtemp = QuantSpec('q', fndef)
+        qtemp = QuantSpec("q", fndef)
         for emb_fname in embed_funcs.keys():
             # check for embedded function names in these definitions that need
             # prefix 'self.' for later function creation
             if emb_fname in qtemp:
                 # replace all occurrences
-                qtemp.mapNames({emb_fname: 'self.'+emb_fname})
+                qtemp.mapNames({emb_fname: "self." + emb_fname})
             qtemp.mapNames(dyn_map)
-        new_fndef = str(qtemp.eval(**filteredDict(valDict, fnsig, neg=True)).renderForCode())
+        new_fndef = str(
+            qtemp.eval(**filteredDict(valDict, fnsig, neg=True)).renderForCode()
+        )
         embed_funcs[fname] = (fnsig, new_fndef)
 
-    free.extend(remain(fspec.freeSymbols,
-                  list(math_globals.keys())+list(local_free.keys())+list(embed_funcs.keys())+dyn_keys))
+    free.extend(
+        remain(
+            fspec.freeSymbols,
+            list(math_globals.keys())
+            + list(local_free.keys())
+            + list(embed_funcs.keys())
+            + dyn_keys,
+        )
+    )
     # hack to exclude object references which will be taken care of at runtime
     # or string literals that aren't supposed to be free symbols
-    free = [sym for sym in free if not \
-            ("'%s'"%sym in qexpr or '"%s"'%sym in qexpr)]
+    free = [sym for sym in free if not ("'%s'" % sym in qexpr or '"%s"' % sym in qexpr)]
     mapnames = list(local_free.keys()) + list(embed_funcs.keys())
     for k in local_free.keys():
         for sym in free:
-            if '.' in sym and sym[:sym.index('.')] == k:
+            if "." in sym and sym[: sym.index(".")] == k:
                 mapnames.append(sym)
                 free.remove(sym)
     # eval simplifies the arithmetic where possible, and defining
@@ -565,42 +671,49 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
     # they are python objects!
     if for_funcspec:
         # These statements assume that no underscore-leading names are used, e.g. 'a._b'
-        assert '._' not in str(fspec)
+        assert "._" not in str(fspec)
         # enforce unique in case e.g. 'K.n' and 'K_n' were both separately in free symbols
         # otherwise end up with duplicates of 'K_n' in argument list later
-        free_h = makeSeqUnique([symb.replace('.', '_') for symb in free])
+        free_h = makeSeqUnique([symb.replace(".", "_") for symb in free])
         # Don't want to replace '_' in free names if not part of hierarchical name
         # e.g. if it's a module name for non-funcspec use
-        free_h_nonFS = makeSeqUnique([symb.replace('_', '.') for symb in free])
+        free_h_nonFS = makeSeqUnique([symb.replace("_", ".") for symb in free])
         h_map.update(dict(zip(free_h_nonFS, free_h)))
         free = free_h
     defs = filteredDict(local_free, [k for k, v in local_free.items() if v is not None])
     local_free.update(dict(zip(free, [QuantSpec(symb) for symb in free])))
-    scope = filteredDict(local_free, [k for k, v in local_free.items() if v is not None])
+    scope = filteredDict(
+        local_free, [k for k, v in local_free.items() if v is not None]
+    )
     scope.update(local_funcs)
     scope.update(temp_dynamic)
     fspec.mapNames(h_map)
     eval_globals = math_globals.copy()
-    eval_globals['max'] = QuantSpec('max', '__temp_max__')
-    eval_globals['min'] = QuantSpec('min', '__temp_min__')
-    eval_globals['sum'] = QuantSpec('sum', '__temp_sum__')
+    eval_globals["max"] = QuantSpec("max", "__temp_max__")
+    eval_globals["min"] = QuantSpec("min", "__temp_min__")
+    eval_globals["sum"] = QuantSpec("sum", "__temp_sum__")
     if fspec.isvector():
         # e.g. for a Jacobian or other matrix-valued function
         # expect a list of lists of Quantities (i.e., rank 2 only)
-        temp_str = "[" + ",".join([_join_sublist(q, eval_globals,
-                          scope, eval_at_runtime) \
-                                   for q in fspec.fromvector()]) + "]"
-        fspec_eval = QuantSpec('__temp__', temp_str).renderForCode()
+        temp_str = (
+            "["
+            + ",".join(
+                [
+                    _join_sublist(q, eval_globals, scope, eval_at_runtime)
+                    for q in fspec.fromvector()
+                ]
+            )
+            + "]"
+        )
+        fspec_eval = QuantSpec("__temp__", temp_str).renderForCode()
         if eval_at_runtime != []:
-            fspec_eval.mapNames(dict(zip(mapnames,
-                                    ['self.'+k for k in mapnames])))
+            fspec_eval.mapNames(dict(zip(mapnames, ["self." + k for k in mapnames])))
             fspec_eval.mapNames(dyn_map)
         fspec_str = str(fspec_eval)
     else:
         if for_funcspec:
             # BUG? Why is dyn_map not used here when eval_at_runtime != []?
-            fspec_eval = _eval(fspec, eval_globals,
-                           scope, eval_at_runtime)
+            fspec_eval = _eval(fspec, eval_globals, scope, eval_at_runtime)
         else:
             # no need to try to simplify
             fspec_eval = fspec
@@ -611,23 +724,36 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
         will be embedded in the fn_wrapper definition."""
         try:
             if defs[k]._args == []:
-                return '()'
+                return "()"
             else:
-                return ''
+                return ""
         except (AttributeError, KeyError):
-            return ''
+            return ""
+
     if isinstance(fspec_eval, _num_types):
         if eval_at_runtime != []:
-            fspec.mapNames(dict(zip(mapnames,
-                        ['self.'+k+append_call_parens(k) for k in mapnames])))
+            fspec.mapNames(
+                dict(
+                    zip(
+                        mapnames,
+                        ["self." + k + append_call_parens(k) for k in mapnames],
+                    )
+                )
+            )
             fspec_str = str(fspec)
         else:
             fspec_str = repr(fspec_eval)
     elif not fspec.isvector():
         # already found fspec_str using eval_at_runtime for isvector case
         if eval_at_runtime != []:
-            fspec.mapNames(dict(zip(mapnames,
-                        ['self.'+k+append_call_parens(k) for k in mapnames])))
+            fspec.mapNames(
+                dict(
+                    zip(
+                        mapnames,
+                        ["self." + k + append_call_parens(k) for k in mapnames],
+                    )
+                )
+            )
             # replace any occurrences of eval-at-runtime parameters x
             # with 'self._pardict[x]'
             fspec.mapNames(dyn_map)
@@ -643,44 +769,61 @@ def expr2fun(qexpr, ensure_args=None, ensure_dynamic=None, fn_name='',
     if ensure_args is not None:
         arglist.extend(remain(ensure_args, free))
     if len(arglist) > 0:
-        arglist_str = ', ' + ", ".join(arglist)
+        arglist_str = ", " + ", ".join(arglist)
     else:
-        arglist_str = ''
+        arglist_str = ""
         # only include if the 'function' has no arguments and can
         # be treated as a dynamic-valued variable
     # now that exec has to be guarded with locals(), etc must add these explicit
     # imports as per header of Symbolic.py
     my_locals = locals()
     my_locals.update(math_globals)
-    if fn_name == '' or fn_name is None:
+    if fn_name == "" or fn_name is None:
         # make a random, unique name
         import time
-        fn_name = 'fn_' + str(time.time()).replace('.', '_')
+
+        fn_name = "fn_" + str(time.time()).replace(".", "_")
     # !!! PERFORM MAGIC
-    def_str = """
+    def_str = (
+        """
 from __future__ import division
-class """+fn_name+"""_fn_wrapper(object):
-    __name__ = '""" + fn_name + """'
-    def __call__(self""" + arglist_str + """):
-        return """ + fspec_str + """
+class """
+        + fn_name
+        + """_fn_wrapper(object):
+    __name__ = '"""
+        + fn_name
+        + """'
+    def __call__(self"""
+        + arglist_str
+        + """):
+        return """
+        + fspec_str
+        + """
 
     def alt_call(self, keyed_arg):
         return self.__call__(**filteredDict(self._namemap(keyed_arg), self._args))
     """
+    )
     if len(embed_funcs) > 0:
         for fname, (fnsig, fndef) in embed_funcs.items():
             if len(fnsig) > 0:
                 embed_sig_str = ", " + ", ".join(fnsig)
             else:
                 embed_sig_str = ""
-            def_str += "\n    def " + fname + "(self" + embed_sig_str + \
-                       "):\n        return " + fndef
+            def_str += (
+                "\n    def "
+                + fname
+                + "(self"
+                + embed_sig_str
+                + "):\n        return "
+                + fndef
+            )
     try:
         six.exec_(def_str)
     except:
         print("Problem defining function:")
         raise
-    cls = locals()[fn_name+'_fn_wrapper']
+    cls = locals()[fn_name + "_fn_wrapper"]
     evalfunc = cls()
     evalfunc.__dict__.update(defs)
     if dyn_keys != [] and for_funcspec:
@@ -695,32 +838,32 @@ class """+fn_name+"""_fn_wrapper(object):
     g[cls.__name__] = cls
     return evalfunc
 
-def nonworking_call_to_metaclass():
-    # test call to new metaclass for expr2fun
-    kwargs = {'fn_name': fn_name,
-              'arglist_str': arglist_str,
-              'fspec_str': fspec_str}
-    if len(embed_funcs) > 0:
-        embed_func_strs = {}
-        for fname, (fnsig, fndef) in embed_funcs.items():
-            if len(fnsig) > 0:
-                embed_sig_str = ", " + ", ".join(fnsig)
-            else:
-                embed_sig_str = ""
-            embed_func_strs[fname] = (embed_sig_str, fndef)
-        kwargs["embed_funcs"] = embed_func_strs
-    kwargs['arglist'] = arglist
-    kwargs['_call_spec'] = fspec_str
-    kwargs['_namemap'] = h_map
-    kwargs['defs'] = defs
-    if dyn_keys != [] and for_funcspec:
-        # Don't make copy of the dict to allow automatic update.
-        # We don't need _pardict for non-funcspec definitions.
-        kwargs["_pardict"] = ensure_dynamic
 
-    #class Y(object):
-    #    __metaclass__ = fn_wrapper
-    return fn_wrapper(kwargs) #type(fn_name, (Y,), kwargs)
+# def nonworking_call_to_metaclass():
+#     # test call to new metaclass for expr2fun
+#     kwargs = {"fn_name": fn_name, "arglist_str": arglist_str, "fspec_str": fspec_str}
+#     if len(embed_funcs) > 0:
+#         embed_func_strs = {}
+#         for fname, (fnsig, fndef) in embed_funcs.items():
+#             if len(fnsig) > 0:
+#                 embed_sig_str = ", " + ", ".join(fnsig)
+#             else:
+#                 embed_sig_str = ""
+#             embed_func_strs[fname] = (embed_sig_str, fndef)
+#         kwargs["embed_funcs"] = embed_func_strs
+#     kwargs["arglist"] = arglist
+#     kwargs["_call_spec"] = fspec_str
+#     kwargs["_namemap"] = h_map
+#     kwargs["defs"] = defs
+#     if dyn_keys != [] and for_funcspec:
+#         # Don't make copy of the dict to allow automatic update.
+#         # We don't need _pardict for non-funcspec definitions.
+#         kwargs["_pardict"] = ensure_dynamic
+#
+#     # class Y(object):
+#     #    __metaclass__ = fn_wrapper
+#     return fn_wrapper(kwargs)  # type(fn_name, (Y,), kwargs)
+
 
 # Not working
 class fn_wrapper(type):
@@ -728,7 +871,10 @@ class fn_wrapper(type):
         call_str = """def _call(self%s):
             print "In call"
             return %s
-            """ % (kwargs["arglist_str"], kwargs["fspec_str"])
+            """ % (
+            kwargs["arglist_str"],
+            kwargs["fspec_str"],
+        )
         alt_call_str = """def _alt_call(self, keyed_arg):
             return self.__call__(**filteredDict(self._namemap(keyed_arg), self._args))
 
@@ -736,17 +882,23 @@ class fn_wrapper(type):
         print("__init__ of fn_wrapper")
         six.exec_(call_str)
         six.exec_(alt_call_str)
-        setattr(cls, "__call__", types.MethodType(locals()['_call'], cls))
-        setattr(cls, "alt_call", types.MethodType(locals()['_alt_call'], cls))
+        setattr(cls, "__call__", types.MethodType(locals()["_call"], cls))
+        setattr(cls, "alt_call", types.MethodType(locals()["_alt_call"], cls))
         setattr(cls, "__name__", kwargs["fn_name"])
         setattr(cls, "_namemap", kwargs["_namemap"])
         setattr(cls, "_args", kwargs["arglist"])
         setattr(cls, "_call_spec", kwargs["fspec_str"])
         if "embed_funcs" in kwargs:
-            for embed_fname, (embed_sig_str, embed_fdef_str) in kwargs["embed_funcs"].items():
+            for embed_fname, (embed_sig_str, embed_fdef_str) in kwargs[
+                "embed_funcs"
+            ].items():
                 ef_str = """def %s(self%s):
                 return %s
-                """ % (embed_fname, embed_sig_str, embed_fdef_str)
+                """ % (
+                    embed_fname,
+                    embed_sig_str,
+                    embed_fdef_str,
+                )
                 six.exec_(ef_str)
                 ef = locals()[embed_fname]
                 setattr(cls, embed_fname, types.MethodType(ef, cls))
@@ -755,42 +907,57 @@ class fn_wrapper(type):
                 setattr(cls, def_key, def_val)
 
 
-def old_expr2fun_final():
-    # !!! PERFORM MAGIC
-    def_str = """
-from __future__ import division
-class """+fn_name+"""_fn_wrapper(object):
-    __name__ = '""" + fn_name + """'
-    def __call__(self""" + arglist_str + """):
-        return """ + fspec_str + """
-
-    def alt_call(self, keyed_arg):
-        return self.__call__(**filteredDict(self._namemap(keyed_arg), self._args))
-"""
-    if len(embed_funcs) > 0:
-        for fname, (fnsig, fndef) in embed_funcs.items():
-            if len(fnsig) > 0:
-                embed_sig_str = ", " + ", ".join(fnsig)
-            else:
-                embed_sig_str = ""
-            def_str += "\n    def " + fname + "(self" + embed_sig_str + \
-                       "):\n        return " + fndef
-    try:
-        six.exec_(def_str)
-    except:
-        print("Problem defining function:")
-        raise
-    evalfunc = locals()['fn_wrapper']()
-    evalfunc.__dict__.update(defs)
-    if dyn_keys != [] and for_funcspec:
-        # Don't make copy of the dict to allow automatic update.
-        # We don't need _pardict for non-funcspec definitions.
-        evalfunc._pardict = ensure_dynamic
-    evalfunc._args = arglist
-    evalfunc._call_spec = fspec_str
-    evalfunc._namemap = h_map
-    return evalfunc
-
+# def old_expr2fun_final():
+#     # !!! PERFORM MAGIC
+#     def_str = (
+#         """
+# from __future__ import division
+# class """
+#         + fn_name
+#         + """_fn_wrapper(object):
+#     __name__ = '"""
+#         + fn_name
+#         + """'
+#     def __call__(self"""
+#         + arglist_str
+#         + """):
+#         return """
+#         + fspec_str
+#         + """
+#
+#     def alt_call(self, keyed_arg):
+#         return self.__call__(**filteredDict(self._namemap(keyed_arg), self._args))
+# """
+#     )
+#     if len(embed_funcs) > 0:
+#         for fname, (fnsig, fndef) in embed_funcs.items():
+#             if len(fnsig) > 0:
+#                 embed_sig_str = ", " + ", ".join(fnsig)
+#             else:
+#                 embed_sig_str = ""
+#             def_str += (
+#                 "\n    def "
+#                 + fname
+#                 + "(self"
+#                 + embed_sig_str
+#                 + "):\n        return "
+#                 + fndef
+#             )
+#     try:
+#         six.exec_(def_str)
+#     except:
+#         print("Problem defining function:")
+#         raise
+#     evalfunc = locals()["fn_wrapper"]()
+#     evalfunc.__dict__.update(defs)
+#     if dyn_keys != [] and for_funcspec:
+#         # Don't make copy of the dict to allow automatic update.
+#         # We don't need _pardict for non-funcspec definitions.
+#         evalfunc._pardict = ensure_dynamic
+#     evalfunc._args = arglist
+#     evalfunc._call_spec = fspec_str
+#     evalfunc._namemap = h_map
+#     return evalfunc
 
 
 def subs(qexpr, *bindings):
@@ -816,11 +983,11 @@ def subs(qexpr, *bindings):
         elif isinstance(b, dict):
             for k, v in b.items():
                 if k in valDict:
-                    raise ValueError("Value for %s already bound"%k)
+                    raise ValueError("Value for %s already bound" % k)
                 valDict[k] = str(v)
         else:
-            raise TypeError("Invalid binding type '%s' for substitution"%type(b))
-    tempvar = Var(qtemp, '__result__')
+            raise TypeError("Invalid binding type '%s' for substitution" % type(b))
+    tempvar = Var(qtemp, "__result__")
     tempresult = tempvar.eval(**valDict)
     if isQuant:
         result = Var(tempresult, varname)
@@ -834,19 +1001,19 @@ def _parse_func_deriv(fname):
     """Internal utility to test whether a function name is generated
     from a symbolic differentiation call.
     """
-    if '_' in fname:
+    if "_" in fname:
         # find position from end (in case more than one)
-        neg_ix = fname[::-1].index('_')
+        neg_ix = fname[::-1].index("_")
         # expect integer after _
-        orig_name = fname[:-neg_ix-1]
+        orig_name = fname[: -neg_ix - 1]
         int_part = fname[-neg_ix:]
-        if len(orig_name) > 0 and len(int_part) > 0 and \
-           isIntegerToken(int_part):
+        if len(orig_name) > 0 and len(int_part) > 0 and isIntegerToken(int_part):
             return (orig_name, int(int_part))
         else:
             return (fname, None)
     else:
         return (fname, None)
+
 
 def _generate_subderivatives(symbols, fnspecs):
     """Internal utility for prepJacobian"""
@@ -867,10 +1034,12 @@ def _generate_subderivatives(symbols, fnspecs):
                 var = fnsig[pos]
             except KeyError:
                 # position was not legitimate for this function
-                raise ValueError("Invalid position in signature of function %s" % orig_name)
+                raise ValueError(
+                    "Invalid position in signature of function %s" % orig_name
+                )
             Df = Diff(fndef, var)
             add_fnspecs[symb] = (fnsig, str(Df))
-            new_free.extend(remain(Df.freeSymbols, new_free+math_globals_keys))
+            new_free.extend(remain(Df.freeSymbols, new_free + math_globals_keys))
     # if any auxiliary functions showed up as free names, add them to add_fnspecs
     for f in new_free:
         if f in fnspecs and f not in add_fnspecs:
@@ -890,7 +1059,7 @@ def prepJacobian(varspecs, coords, fnspecs=None, max_iter_depth=20):
 
     Coordinates will be rearranged into alphabetically sorted order.
     """
-    coords = list(coords) # in case of tuple or other immutable sequence
+    coords = list(coords)  # in case of tuple or other immutable sequence
     coords.sort()
     if isinstance(varspecs, Fun):
         # either dim == number of coords or one fewer if 't' is included in
@@ -900,13 +1069,15 @@ def prepJacobian(varspecs, coords, fnspecs=None, max_iter_depth=20):
         if siglen in (D, D + 1):
             if D == len(coords):
                 # ensure coords and relevant signature elements are the same
-                if siglen == D+1:
+                if siglen == D + 1:
                     offset = 1
                 else:
                     offset = 0
                 coords_sigorder = varspecs.signature[offset:]
                 try:
-                    ix_map = dict(zip(coords,[coords_sigorder.index(c) for c in coords]))
+                    ix_map = dict(
+                        zip(coords, [coords_sigorder.index(c) for c in coords])
+                    )
                 except:
                     raise ValueError("Incompatible coords with function sig")
                 coords_sigorder.sort()
@@ -931,7 +1102,7 @@ def prepJacobian(varspecs, coords, fnspecs=None, max_iter_depth=20):
                 raise ValueError("Mismatch of function dimension and coords")
         else:
             raise ValueError("Incompatible Function type for Jacobian")
-        if siglen == D+1:
+        if siglen == D + 1:
             # check that non-coord (usually 't') is first
             if varspecs.signature[0] in coords:
                 raise ValueError("Cannot have coordinate variable first in Jac sig")
@@ -959,11 +1130,9 @@ def prepJacobian(varspecs, coords, fnspecs=None, max_iter_depth=20):
     return jac, new_fnspecs
 
 
-
 def checkbraces(s):
     """Internal utility to verify that braces match."""
-    if s.count('(') != s.count(')') or \
-       s.count('[') != s.count(']'):
+    if s.count("(") != s.count(")") or s.count("[") != s.count("]"):
         raise SyntaxError("Mismatch of braces in expression %s" % s)
 
 
@@ -974,7 +1143,9 @@ def whoQ(objdict=None, deepSearch=False, frameback=3):
     objdict_out = {}
     if objdict is None:
         # look a default of 3 stack frames further back to access user's frame
-        assert int(frameback)==frameback, "frameback argument must be a positive integer"
+        assert (
+            int(frameback) == frameback
+        ), "frameback argument must be a positive integer"
         assert frameback > 0, "frameback argument must be a positive integer"
         frame = sys._getframe()
         for i in range(frameback):
@@ -987,56 +1158,72 @@ def whoQ(objdict=None, deepSearch=False, frameback=3):
                 objdict_out[objname] = obj
             elif deepSearch:
                 if isinstance(obj, list) or isinstance(obj, tuple):
-                    if sometrue([compareClassAndBases(x, typelist) \
-                                 for x in obj]):
+                    if sometrue([compareClassAndBases(x, typelist) for x in obj]):
                         objdict_out[objname] = obj
                 elif isinstance(obj, dict):
-                    if sometrue([compareClassAndBases(x, typelist) \
-                                 for x in obj.values()]):
+                    if sometrue(
+                        [compareClassAndBases(x, typelist) for x in obj.values()]
+                    ):
                         objdict_out[objname] = obj
-    return objdict_out   # original 'returnlevel=2'
+    return objdict_out  # original 'returnlevel=2'
+
 
 # ----------------------------------------------------------------------
 
 _localfuncnames = protected_macronames + builtin_auxnames
-_avoid_math_symbols = ['e', 'pi'] + allmathnames_symbolic
+_avoid_math_symbols = ["e", "pi"] + allmathnames_symbolic
+
 
 class QuantSpec(object):
     """Specification for a symbolic numerical quantity."""
 
-    def __init__(self, subjectToken, specStr="", specType=None,
-                 includeProtected=True, treatMultiRefs=True,
-                 preserveSpace=False, ignoreSpecial=None):
-        if isNameToken(subjectToken) or (isMultiRef(subjectToken) \
-                   and treatMultiRefs and alltrue([char not in subjectToken \
-                                       for char in ['+','-','/','*','(',')']])):
+    def __init__(
+        self,
+        subjectToken,
+        specStr="",
+        specType=None,
+        includeProtected=True,
+        treatMultiRefs=True,
+        preserveSpace=False,
+        ignoreSpecial=None,
+    ):
+        if isNameToken(subjectToken) or (
+            isMultiRef(subjectToken)
+            and treatMultiRefs
+            and alltrue(
+                [char not in subjectToken for char in ["+", "-", "/", "*", "(", ")"]]
+            )
+        ):
             token = subjectToken.strip()
-##            if token in ('for','sum'):
-##                raise ValueError("Cannot use reserved macro name '%s' as a "%token +\
-##                                 "QuantSpec's name")
-##            else:
+            ##            if token in ('for','sum'):
+            ##                raise ValueError("Cannot use reserved macro name '%s' as a "%token +\
+            ##                                 "QuantSpec's name")
+            ##            else:
             self.subjectToken = token
         else:
             print("Found:%s" % subjectToken)
             raise ValueError("Invalid subject token")
-        if specStr != "" and specStr[0] == '+':
+        if specStr != "" and specStr[0] == "+":
             if len(specStr) > 1:
                 specStr = specStr[1:]
             else:
                 raise ValueError("Invalid specification string")
         if specType is None:
-            self.specType = 'ExpFuncSpec'
+            self.specType = "ExpFuncSpec"
         elif specType in specTypes:
             self.specType = specType
         else:
-            raise ValueError("Invalid specType provided: %s"%specType)
-        ignoreTokens = ['[',']']
+            raise ValueError("Invalid specType provided: %s" % specType)
+        ignoreTokens = ["[", "]"]
         if ignoreSpecial is not None:
-            ignoreTokens.extend(remain(ignoreSpecial,ignoreTokens))
-        self.parser = parserObject(specStr, includeProtected,
-                                   treatMultiRefs=treatMultiRefs,
-                                   ignoreTokens=ignoreTokens,
-                                   preserveSpace=preserveSpace)
+            ignoreTokens.extend(remain(ignoreSpecial, ignoreTokens))
+        self.parser = parserObject(
+            specStr,
+            includeProtected,
+            treatMultiRefs=treatMultiRefs,
+            ignoreTokens=ignoreTokens,
+            preserveSpace=preserveSpace,
+        )
         self.specStr = "".join(self.parser.tokenized)
         checkbraces(self.specStr)
         # transfer these up to this level
@@ -1051,19 +1238,28 @@ class QuantSpec(object):
         self._check_self_ref()
 
     def _check_self_ref(self):
-        if self.specType == 'ExpFuncSpec':
+        if self.specType == "ExpFuncSpec":
             if self.subjectToken in self.parser.usedSymbols:
                 locs = self.parser.find(self.subjectToken)
                 for loc in locs:
-                    if loc <= 1 or self.parser.tokenized[loc-2:loc] != ['initcond', '(']:
-                        raise ValueError("Cannot define the symbol "+self.subjectToken+" in"
-                                 " terms of itself with spec type ExpFuncSpec")
-
+                    if loc <= 1 or self.parser.tokenized[loc - 2 : loc] != [
+                        "initcond",
+                        "(",
+                    ]:
+                        raise ValueError(
+                            "Cannot define the symbol " + self.subjectToken + " in"
+                            " terms of itself with spec type ExpFuncSpec"
+                        )
 
     def redefine(self, specStr):
         p = self.parser
-        self.parser = parserObject(specStr, p.includeProtected,
-                         p.treatMultiRefs, p.ignoreTokens, p.preserveSpace)
+        self.parser = parserObject(
+            specStr,
+            p.includeProtected,
+            p.treatMultiRefs,
+            p.ignoreTokens,
+            p.preserveSpace,
+        )
         self.specStr = "".join(self.parser.tokenized)
         checkbraces(self.specStr)
         self.usedSymbols = self.parser.usedSymbols
@@ -1075,14 +1271,11 @@ class QuantSpec(object):
             # spec not long enough therefore self cannot be a vector
             self.dim = 0
 
-
     def isspecdefined(self):
         return self.specStr.strip() != ""
 
-
     def isDefined(self, verbose=False):
         return self.specStr.strip() != ""
-
 
     def __call__(self, *args):
         # args is a trick to avoid an exception when Python eval() function
@@ -1103,13 +1296,14 @@ class QuantSpec(object):
         else:
             # need to return a QuantSpec type if being called with arguments
             # and propagate str() calls to all sub-elements of any sequence types
-            return QuantSpec("__result__", base_str + "(" + \
-                       _propagate_str_eval(args) + ")", self.specType)
+            return QuantSpec(
+                "__result__",
+                base_str + "(" + _propagate_str_eval(args) + ")",
+                self.specType,
+            )
 
-
-    def isCompound(self, ops = ['+','-','*','/']):
+    def isCompound(self, ops=["+", "-", "*", "/"]):
         return self.parser.isCompound(ops)
-
 
     def __contains__(self, tok):
         return tok in self.parser.tokenized
@@ -1133,7 +1327,7 @@ class QuantSpec(object):
         #   ExpFuncSpec o RHSfuncSpec -> RHSfuncSpec
         #   ImpFuncSpec o RHSfuncSpec -> RHSfuncSpec (should this be an error?)
         #   ImpFuncSpec o ExpFuncSpec -> ImpFuncSpec
-        specType = self.specType   # default initial value
+        specType = self.specType  # default initial value
         self_e = None
         try:
             self_e = eval(self.specStr, {}, {})
@@ -1144,21 +1338,20 @@ class QuantSpec(object):
         if check_self_e and (isinstance(self_e, _num_types)):
             if self_e == 0:
                 # we don't try to deal with divisions involving 0 here!
-                if opstr == '*':
-                    if hasattr(other, 'specType'):
-                        specType = resolveSpecTypeCombos(self.specType,
-                                                         other.specType)
+                if opstr == "*":
+                    if hasattr(other, "specType"):
+                        specType = resolveSpecTypeCombos(self.specType, other.specType)
                     else:
                         specType = self.specType
                     return QuantSpec("__result__", "0", specType)
-                elif opstr in ['+','-']:
+                elif opstr in ["+", "-"]:
                     include_self = False
-            elif self_e == 1 and opstr == '*':
+            elif self_e == 1 and opstr == "*":
                 include_self = False
         if self.isDefined():
             if reverseorder:
-                if self.specStr[0] == '-' and opstr == '-':
-                    opstr = '+'
+                if self.specStr[0] == "-" and opstr == "-":
+                    opstr = "+"
                     self_specStr_temp = self.specStr[1:]
                 else:
                     self_specStr_temp = self.specStr
@@ -1183,25 +1376,25 @@ class QuantSpec(object):
             if check_e and isinstance(e, _num_types):
                 if e == 0:
                     # we don't try to deal with divisions involving 0 here!
-                    if opstr == '*':
+                    if opstr == "*":
                         return QuantSpec("__result__", "0", specType)
-                    elif opstr in ['+','-']:
-                        return QuantSpec("__result__", self_specStr_temp,
-                                         specType)
-                    elif opstr == '/' and reverseorder:
+                    elif opstr in ["+", "-"]:
+                        return QuantSpec("__result__", self_specStr_temp, specType)
+                    elif opstr == "/" and reverseorder:
                         return QuantSpec("__result__", "0", self.specType)
-                elif e == 1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
+                elif e == 1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
                     return QuantSpec("__result__", self_specStr_temp, specType)
-                elif e == -1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
-                    return QuantSpec("__result__", '-'+self_specStr_temp,
-                                     specType)
-            if otherstr[0] == '-' and opstr == '-' and not reverseorder:
-                opstr = '+'
+                elif e == -1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
+                    return QuantSpec("__result__", "-" + self_specStr_temp, specType)
+            if otherstr[0] == "-" and opstr == "-" and not reverseorder:
+                opstr = "+"
                 otherstr = str(otherstr[1:])
-            otherbraces = int((opstr == '*' or opstr == '-') and other.isCompound(['+','-']) \
-                           or opstr == '/' and other.isCompound())
+            otherbraces = int(
+                (opstr == "*" or opstr == "-")
+                and other.isCompound(["+", "-"])
+                or opstr == "/"
+                and other.isCompound()
+            )
         elif isinstance(other, str):
             e = None
             try:
@@ -1212,74 +1405,76 @@ class QuantSpec(object):
             if check_e and isinstance(e, _num_types):
                 if e == 0:
                     # we don't try to deal with divisions involving 0 here!
-                    if opstr == '*':
+                    if opstr == "*":
                         return QuantSpec("__result__", "0", self.specType)
-                    elif opstr in ['+','-']:
-                        return QuantSpec("__result__", self_specStr_temp,
-                                         self.specType)
-                    elif opstr == '/' and reverseorder:
+                    elif opstr in ["+", "-"]:
+                        return QuantSpec("__result__", self_specStr_temp, self.specType)
+                    elif opstr == "/" and reverseorder:
                         return QuantSpec("__result__", "0", self.specType)
-                elif e == 1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
-                    return QuantSpec("__result__", self_specStr_temp,
-                                     self.specType)
-                elif e == -1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
-                    return QuantSpec("__result__", '-'+self_specStr_temp,
-                                     self.specType)
-            if other[0] == '-' and opstr == '-' and not reverseorder:
-                opstr = '+'
+                elif e == 1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
+                    return QuantSpec("__result__", self_specStr_temp, self.specType)
+                elif e == -1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
+                    return QuantSpec(
+                        "__result__", "-" + self_specStr_temp, self.specType
+                    )
+            if other[0] == "-" and opstr == "-" and not reverseorder:
+                opstr = "+"
                 otherstr = str(other[1:]).strip()
             else:
                 otherstr = str(other).strip()
             temp = QuantSpec("__result__", otherstr, self.specType)
-            otherbraces = int((opstr == '*' or opstr == '-') and temp.isCompound(['+','-']) \
-                           or opstr == '/' and temp.isCompound())
+            otherbraces = int(
+                (opstr == "*" or opstr == "-")
+                and temp.isCompound(["+", "-"])
+                or opstr == "/"
+                and temp.isCompound()
+            )
         elif isinstance(other, _num_types):
             if other == 0:
                 # we don't try to deal with divisions involving 0 here!
-                if opstr == '*':
+                if opstr == "*":
                     return QuantSpec("__result__", "0", self.specType)
-                elif opstr in ['+','-']:
-                    return QuantSpec("__result__", self_specStr_temp,
-                                     self.specType)
-                elif opstr == '/' and reverseorder:
+                elif opstr in ["+", "-"]:
+                    return QuantSpec("__result__", self_specStr_temp, self.specType)
+                elif opstr == "/" and reverseorder:
                     return QuantSpec("__result__", "0", self.specType)
-            elif other == 1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
-                return QuantSpec("__result__", self_specStr_temp,
-                                 self.specType)
-            elif other == -1 and (opstr == '*' or \
-                                 (opstr == '/' and not reverseorder)):
-                return QuantSpec("__result__", '-'+self_specStr_temp,
-                                 self.specType)
-            if other < 0 and opstr == '-' and not reverseorder:
-                opstr = '+'
+            elif other == 1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
+                return QuantSpec("__result__", self_specStr_temp, self.specType)
+            elif other == -1 and (opstr == "*" or (opstr == "/" and not reverseorder)):
+                return QuantSpec("__result__", "-" + self_specStr_temp, self.specType)
+            if other < 0 and opstr == "-" and not reverseorder:
+                opstr = "+"
                 otherstr = str(-other)
             else:
                 otherstr = str(other)
             otherbraces = 0
         else:
-            raise TypeError("Invalid type to combine with QuantSpec: %s"%type(other))
+            raise TypeError("Invalid type to combine with QuantSpec: %s" % type(other))
         if otherstr == "":
             combinestr = ""
             selfbraces = 0
         else:
-            selfbraces = int((opstr == '*' or opstr == '-') and self.isCompound(['+','-']) \
-                          or opstr in ['-','/'] and self.isCompound())
+            selfbraces = int(
+                (opstr == "*" or opstr == "-")
+                and self.isCompound(["+", "-"])
+                or opstr in ["-", "/"]
+                and self.isCompound()
+            )
             combinestr = " " + opstr + " "
         if not include_self:
             selfstr = ""
             combinestr = ""
-            otherbraces = 0   # override
+            otherbraces = 0  # override
         else:
-            selfstr = selfbraces*"(" + self_specStr_temp + selfbraces*")"
+            selfstr = selfbraces * "(" + self_specStr_temp + selfbraces * ")"
         if reverseorder:
-            resultstr = otherbraces*"(" + otherstr + otherbraces*")" \
-                   + combinestr + selfstr
+            resultstr = (
+                otherbraces * "(" + otherstr + otherbraces * ")" + combinestr + selfstr
+            )
         else:
-            resultstr = selfstr + combinestr + otherbraces*"(" + otherstr \
-                                                  + otherbraces*")"
+            resultstr = (
+                selfstr + combinestr + otherbraces * "(" + otherstr + otherbraces * ")"
+            )
         return QuantSpec("__result__", resultstr, specType)
 
     def __add__(self, other):
@@ -1325,23 +1520,25 @@ class QuantSpec(object):
                     otherval = float(other)
                     if otherval == 0:
                         # result is 0
-                        return QuantSpec("__result__", '0', specType)
+                        return QuantSpec("__result__", "0", specType)
                     elif otherval == 1:
                         # result is 1
-                        return QuantSpec("__result__", '1', specType)
+                        return QuantSpec("__result__", "1", specType)
                 except ValueError:
                     otherstr = other
             elif isinstance(other, _num_types):
                 if other == 0:
                     # result is 0
-                    return QuantSpec("__result__", '0', specType)
+                    return QuantSpec("__result__", "0", specType)
                 elif other == 1:
                     # result is 1
-                    return QuantSpec("__result__", '1', specType)
+                    return QuantSpec("__result__", "1", specType)
                 else:
                     otherstr = str(other)
             else:
-                raise TypeError("Invalid type to combine with QuantSpec: %s"%type(other))
+                raise TypeError(
+                    "Invalid type to combine with QuantSpec: %s" % type(other)
+                )
             arg1str = otherstr
             arg2str = selfstr
         else:
@@ -1356,7 +1553,7 @@ class QuantSpec(object):
                     otherval = float(otherstr)
                     if otherval == 0:
                         # result is 1
-                        return QuantSpec("__result__", '1', specType)
+                        return QuantSpec("__result__", "1", specType)
                     elif otherval == 1:
                         # result is self
                         return QuantSpec("__result__", selfstr, specType)
@@ -1368,10 +1565,10 @@ class QuantSpec(object):
                     otherval = float(other)
                     if otherval == 0:
                         # result is 1
-                        return QuantSpec("__result__", '1', specType)
+                        return QuantSpec("__result__", "1", self.specType)
                     elif otherval == 1:
                         # result is self
-                        return QuantSpec("__result__", selfstr, specType)
+                        return QuantSpec("__result__", selfstr, self.specType)
                 except ValueError:
                     otherstr = other
                 specType = self.specType
@@ -1379,38 +1576,41 @@ class QuantSpec(object):
                 specType = self.specType
                 if other == 0:
                     # result is 1
-                    return QuantSpec("__result__", '1', specType)
+                    return QuantSpec("__result__", "1", specType)
                 elif other == 1:
                     # result is self
                     return QuantSpec("__result__", selfstr, specType)
                 else:
                     otherstr = str(other)
             else:
-                raise TypeError("Invalid type to combine with QuantSpec: %s"%type(other))
+                raise TypeError(
+                    "Invalid type to combine with QuantSpec: %s" % type(other)
+                )
             arg1str = selfstr
             arg2str = otherstr
-        return QuantSpec("__result__", 'Pow('+arg1str+','+arg2str+')', specType)
+        return QuantSpec("__result__", "Pow(" + arg1str + "," + arg2str + ")", specType)
 
     def __neg__(self):
         if self.isCompound():
-            return QuantSpec("__result__", "-("+self.specStr+")", self.specType)
+            return QuantSpec("__result__", "-(" + self.specStr + ")", self.specType)
         elif self.specStr != "":
-            if self.specStr[0]=='-':
+            if self.specStr[0] == "-":
                 return QuantSpec("__result__", self.specStr[1:], self.specType)
             else:
-                return QuantSpec("__result__", "-"+self.specStr, self.specType)
+                return QuantSpec("__result__", "-" + self.specStr, self.specType)
         else:
-            return QuantSpec("__result__", "-"+self.subjectToken, self.specType)
+            return QuantSpec("__result__", "-" + self.subjectToken, self.specType)
 
     def __pos__(self):
         return copy(self)
 
     def __len__(self):
         return len(self.specStr)
+
     # -------------- end method group
 
     def __repr__(self):
-        return "QuantSpec %s (%s)"%(self.subjectToken,self.specType)
+        return "QuantSpec %s (%s)" % (self.subjectToken, self.specType)
 
     __str__ = __call__
 
@@ -1421,49 +1621,56 @@ class QuantSpec(object):
         try:
             results.append(type(self) == type(other))
             results.append(self.subjectToken == other.subjectToken)
-            results.append(self.specStr.replace(" ","") == \
-                           other.specStr.replace(" ",""))
+            results.append(
+                self.specStr.replace(" ", "") == other.specStr.replace(" ", "")
+            )
             results.append(self.specType == other.specType)
             results.append(self.parser() == other.parser())
         except AttributeError as err:
             if diff:
-                print("Type: %s %r" % (className(self),  results))
+                print("Type: %s %r" % (className(self), results))
                 print("  " + str(err))
             return False
         if diff:
-            print("Type: %s %r" % (className(self),  results))
+            print("Type: %s %r" % (className(self), results))
         return alltrue(results)
 
+    def __lt__(self, other):
+        return not self.__ge__(other)
+
+    def __ge__(self, other):
+        return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
 
     def difference(self, other):
         """Show differences in comparison to another QuantSpec."""
         self.__eq__(other, diff=True)
 
-
     def isvector(self):
         """Is the quantity spec of the form [a,b,c]"""
         try:
-            return '['==self.specStr[0] and ']'==self.specStr[-1]
+            return "[" == self.specStr[0] and "]" == self.specStr[-1]
         except IndexError:
             return False
-
 
     def fromvector(self, ix=None):
         """Turn the QuantSpec's specification of a vector to a list of
         the element's specifications."""
         if self.isvector():
             if self.dim > 0:
-                arglist = splitargs(self.specStr[1:-1], ['(','['], [')',']'])
-                res = [QuantSpec(self.subjectToken+'_%i'%i,
-                                 arglist[i], self.specType) \
-                        for i in range(self.dim)]
+                arglist = splitargs(self.specStr[1:-1], ["(", "["], [")", "]"])
+                res = [
+                    QuantSpec(self.subjectToken + "_%i" % i, arglist[i], self.specType)
+                    for i in range(self.dim)
+                ]
             else:
-                res = [QuantSpec(self.subjectToken+"_0", self.specStr[1:-1],
-                                     self.specType)]
+                res = [
+                    QuantSpec(
+                        self.subjectToken + "_0", self.specStr[1:-1], self.specType
+                    )
+                ]
             if ix is None:
                 return res
             else:
@@ -1473,7 +1680,6 @@ class QuantSpec(object):
                     raise IndexError("Index out of range in vector QuantSpec")
         else:
             raise TypeError("This QuantSpec does not specify a vector")
-
 
     def simplify(self):
         """Simplify expression *IN PLACE*, but do not substitute terms from
@@ -1485,12 +1691,10 @@ class QuantSpec(object):
         self.freeSymbols = qtemp.freeSymbols
         self.usedSymbols = qtemp.usedSymbols
 
-
     def renderForCode(self):
         """Return code-ready version of spec (e.g. uncapitalize built-in
         function names)"""
         return self._eval(-1, {})
-
 
     def eval(self, *scopearg, **defs):
         """Evaluate expression, in an optional scope dictionary (defaults to locals).
@@ -1498,7 +1702,6 @@ class QuantSpec(object):
 
         Scope dictionary maps variable name -> defining object."""
         return self._eval(1, *scopearg, **defs)
-
 
     def _eval(self, eval_type, *scopearg, **defs):
         """Internal helper function for eval. The use of indirection using
@@ -1517,15 +1720,15 @@ class QuantSpec(object):
                 if scopearg == ():
                     scope = {}
                     # empty variable, parameter declarations pass through
-                    if self.specStr == '':
+                    if self.specStr == "":
                         scopeobjs = {}
                     else:
                         # try eval'ing to a number
                         try:
-                            strval = repr(eval(self.specStr,{},{}))
+                            strval = repr(eval(self.specStr, {}, {}))
                         except:
                             # use local names if eval_type==1
-                            if eval_type==1:
+                            if eval_type == 1:
                                 scopeobjs = whoQ()
                             else:
                                 scopeobjs = {}
@@ -1543,16 +1746,16 @@ class QuantSpec(object):
                                     continue
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
+                                valq = QuantSpec("__dummy__", strval)
                                 if isinstance(obj, Fun):
                                     # functions dealt with in scope_funs
                                     scope_funs[obj.name] = obj
                                 else:
-                                    if valq.isCompound() and strval[0] != '(':
-                                        scope[obj.name] = '('+strval+')'
+                                    if valq.isCompound() and strval[0] != "(":
+                                        scope[obj.name] = "(" + strval + ")"
                                     else:
                                         scope[obj.name] = strval
                         else:
@@ -1562,53 +1765,61 @@ class QuantSpec(object):
                                     continue
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
-                                if valq.isCompound() and strval[0] != '(':
-                                    scope[obj.subjectToken] = '('+strval+')'
+                                valq = QuantSpec("__dummy__", strval)
+                                if valq.isCompound() and strval[0] != "(":
+                                    scope[obj.subjectToken] = "(" + strval + ")"
                                 else:
                                     scope[obj.subjectToken] = strval
                 else:
-                    if not hasattr(scopearg[0], 'keys') and len(scopearg)==1:
+                    if not hasattr(scopearg[0], "keys") and len(scopearg) == 1:
                         raise TypeError("scope argument must be a dictionary or Point")
                     scopeobjs = scopearg[0]
                     # process scope objects, avoiding identity mappings of
                     # tokens that could lead to infinite loops
                     scope = {}
                     for key, obj in scopeobjs.items():
-                        if key == '__result__':
+                        if key == "__result__":
                             # not a valid key
                             continue
                         if isinstance(obj, Quantity):
-                            if obj.name != self.subjectToken and \
-                                        (obj.name != key or obj.isspecdefined()):
-                                strval = str(obj.spec._eval(eval_type,
-                                                filteredDict(scopeobjs, [key], True)))
+                            if obj.name != self.subjectToken and (
+                                obj.name != key or obj.isspecdefined()
+                            ):
+                                strval = str(
+                                    obj.spec._eval(
+                                        eval_type, filteredDict(scopeobjs, [key], True)
+                                    )
+                                )
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
-                                if valq.isCompound() and strval[0] != '(':
-                                    scope[key] = '('+strval+')'
+                                valq = QuantSpec("__dummy__", strval)
+                                if valq.isCompound() and strval[0] != "(":
+                                    scope[key] = "(" + strval + ")"
                                 else:
                                     scope[key] = strval
                         elif isinstance(obj, QuantSpec):
-                            if obj.subjectToken != self.subjectToken \
-                                       and (obj.subjectToken != key or obj.isspecdefined()):
-                                strval = str(obj._eval(eval_type,
-                                                filteredDict(scopeobjs, [key], True)))
+                            if obj.subjectToken != self.subjectToken and (
+                                obj.subjectToken != key or obj.isspecdefined()
+                            ):
+                                strval = str(
+                                    obj._eval(
+                                        eval_type, filteredDict(scopeobjs, [key], True)
+                                    )
+                                )
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
-                                if valq.isCompound() and strval[0] != '(':
-                                    scope[key] = '('+strval+')'
+                                valq = QuantSpec("__dummy__", strval)
+                                if valq.isCompound() and strval[0] != "(":
+                                    scope[key] = "(" + strval + ")"
                                 else:
                                     scope[key] = strval
                         else:
@@ -1627,38 +1838,49 @@ class QuantSpec(object):
                     # process scope objects
                     scope = {}
                     for key, obj in scopeobjs.items():
-                        if key == '__result__':
+                        if key == "__result__":
                             continue
                         if isinstance(obj, Quantity):
-                            if obj.name != self.subjectToken and \
-                                          obj.name != key:
-                                strval = str(obj.spec._eval(eval_type,
-                                            filteredDict(scopeobjs,
-                                                         [self.subjectToken], True)))
+                            if obj.name != self.subjectToken and obj.name != key:
+                                strval = str(
+                                    obj.spec._eval(
+                                        eval_type,
+                                        filteredDict(
+                                            scopeobjs, [self.subjectToken], True
+                                        ),
+                                    )
+                                )
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
-                                if valq.isCompound() and strval[0] != '(':
-                                    scope[key] = '('+strval+')'
+                                valq = QuantSpec("__dummy__", strval)
+                                if valq.isCompound() and strval[0] != "(":
+                                    scope[key] = "(" + strval + ")"
                                 else:
                                     scope[key] = strval
                         elif isinstance(obj, QuantSpec):
-                            if obj.subjectToken != self.subjectToken and \
-                                       obj.subjectToken != key:
-                                strval = str(obj._eval(eval_type,
-                                            filteredDict(scopeobjs,
-                                                         [self.subjectToken], True)))
+                            if (
+                                obj.subjectToken != self.subjectToken
+                                and obj.subjectToken != key
+                            ):
+                                strval = str(
+                                    obj._eval(
+                                        eval_type,
+                                        filteredDict(
+                                            scopeobjs, [self.subjectToken], True
+                                        ),
+                                    )
+                                )
                                 # try to evaluate to float if not one already
                                 try:
-                                    strval = repr(eval(strval,{},{}))
+                                    strval = repr(eval(strval, {}, {}))
                                 except:
                                     pass
-                                valq = QuantSpec('__dummy__', strval)
-                                if valq.isCompound() and strval[0] != '(':
-                                    scope[key] = '('+strval+')'
+                                valq = QuantSpec("__dummy__", strval)
+                                if valq.isCompound() and strval[0] != "(":
+                                    scope[key] = "(" + strval + ")"
                                 else:
                                     scope[key] = strval
                         else:
@@ -1671,13 +1893,17 @@ class QuantSpec(object):
                             else:
                                 raise TypeError("Invalid scope value")
                 else:
-                    raise ValueError("Cannot provide both a scope dictionary and explicit "
-                                     "definitions")
+                    raise ValueError(
+                        "Cannot provide both a scope dictionary and explicit "
+                        "definitions"
+                    )
         if self.isvector():
             res_eval = [qt._eval(eval_type, scope) for qt in self.fromvector()]
-            return QuantSpec(self.subjectToken,
-                             '['+','.join([r() for r in res_eval])+']',
-                             self.specType)
+            return QuantSpec(
+                self.subjectToken,
+                "[" + ",".join([r() for r in res_eval]) + "]",
+                self.specType,
+            )
         # apply definitions in scope
         arglist = list(scope.keys())
         arglist.sort()
@@ -1687,27 +1913,27 @@ class QuantSpec(object):
                 scope[k] = str(v)
             else:
                 continue
-            valq = QuantSpec('__dummy__', scope[k])  # not necessarily = v!
+            valq = QuantSpec("__dummy__", scope[k])  # not necessarily = v!
             # ensure brace around compound args after substitution
-            if valq.isCompound() and scope[k][0] != '(':
-                scope[k] = '(' + scope[k] + ')'
+            if valq.isCompound() and scope[k][0] != "(":
+                scope[k] = "(" + scope[k] + ")"
         # just ignore extra evaluation arguments for symbols that are
         # not used in the expression -- e.g. for when subs() is called
         # blindly, including unused pars. this saves preparing
         # lists of which pars go with which expressions.
         # i.e. keep following statement commented out!
-##        assert remain(arglist, freesymbs) == [], "Invalid arguments to eval"
+        ##        assert remain(arglist, freesymbs) == [], "Invalid arguments to eval"
         argmap = symbolMapClass(scope)
         toks = self.parser.tokenized
         if toks == []:
             return self
-        elif len(toks)==1:
-            mappedval=argmap(argmap(toks[0]))
-            if mappedval in ['E', 'Pi']:
-                if eval_type==1:
+        elif len(toks) == 1:
+            mappedval = argmap(argmap(toks[0]))
+            if mappedval in ["E", "Pi"]:
+                if eval_type == 1:
                     # these two have numeric values
                     mappedval = repr(eval(mappedval.lower()))
-                elif eval_type==-1:
+                elif eval_type == -1:
                     mappedval = mappedval.lower()
             return QuantSpec(self.subjectToken, mappedval, self.specType)
         # deal with string literals that would otherwise lose their quote marks
@@ -1735,29 +1961,30 @@ class QuantSpec(object):
         if num_quotes > 0:
             new_toks = []
             n_ix = -1
-            if mod(num_quotes,2)!=0:
+            if mod(num_quotes, 2) != 0:
                 raise PyDSTool_ValueError("Mismatch in number of quotes in spec")
             # ensure single quotes always end up as double quotes (makes it C-compatible
             #  and simplify_str() annoyingly converts doubles to singles)
             FScompat_namemapInv.update({"'": '"'})
-            for qname in range(int(num_quotes/2)):
-                next_ix = toks[n_ix+1:].index('"')
-                new_toks.extend(toks[n_ix+1:next_ix])
+            for qname in range(int(num_quotes / 2)):
+                next_ix = toks[n_ix + 1 :].index('"')
+                new_toks.extend(toks[n_ix + 1 : next_ix])
                 n_ix = next_ix
-                end_ix = toks[n_ix+1:].index('"')+n_ix
-                literal = "".join(toks[n_ix+1:end_ix+1])
+                end_ix = toks[n_ix + 1 :].index('"') + n_ix
+                literal = "".join(toks[n_ix + 1 : end_ix + 1])
                 literals.append(literal)
-                qlit = '"'+literal+'"'
-                replit = '"__literal_'+literal+'"'
+                qlit = '"' + literal + '"'
+                replit = '"__literal_' + literal + '"'
                 repliterals.append(replit[1:-1])
                 new_toks.append(replit[1:-1])
                 # add to inverse name map to restore literals after eval()
                 # (don't include quotes)
                 FScompat_namemapInv[replit[1:-1]] = qlit
             # finish adding the remaining tokens
-            new_toks.extend(toks[end_ix+2:])
-            qtemp = QuantSpec(self.subjectToken, "".join(argmap(new_toks)),
-                          self.specType)
+            new_toks.extend(toks[end_ix + 2 :])
+            qtemp = QuantSpec(
+                self.subjectToken, "".join(argmap(new_toks)), self.specType
+            )
         else:
             new_toks = toks
             qtemp = self.__copy__()
@@ -1767,18 +1994,18 @@ class QuantSpec(object):
         # but only use keys that weren't present before, to avoid circular
         # mapping: e.g. s->t then t->s
         if scope != {}:
-            qtemp.mapNames(filteredDict(scope,remain(toks,scope.keys())))
+            qtemp.mapNames(filteredDict(scope, remain(toks, scope.keys())))
         # references to builtin aux functions or macros require temp
         # definitions of those as Fun objects
         qtoks = qtemp.parser.tokenized
         localfuncs = intersect(_localfuncnames, qtoks)
         for symb in remain(qtemp.freeSymbols, repliterals):
             if symb not in _avoid_math_symbols:
-                FScompat_namemap[symb] = symb.replace('.', '_')
+                FScompat_namemap[symb] = symb.replace(".", "_")
                 FScompat_namemapInv[FScompat_namemap[symb]] = symb
         for symb in localfuncs:
-            FScompat_namemap[symb] = symb+"_"
-            FScompat_namemapInv[symb+"_"] = symb
+            FScompat_namemap[symb] = symb + "_"
+            FScompat_namemapInv[symb + "_"] = symb
         qtemp.mapNames(FScompat_namemap)
         qtemp_feval = copy(qtemp)
         # map these separately because need to keep the two dicts distinct
@@ -1805,8 +2032,8 @@ class QuantSpec(object):
             raise
         else:
             # HACK: fix simplify_str()'s return of vector arg with round braces
-            if self.isvector() and defstr[0]=='(' and defstr[-1]==')':
-                defstr = '['+defstr[1:-1]+']'
+            if self.isvector() and defstr[0] == "(" and defstr[-1] == ")":
+                defstr = "[" + defstr[1:-1] + "]"
         try:
             defstr_feval = simplify_str(sq_feval)
         except (SyntaxError, MemoryError):
@@ -1816,10 +2043,10 @@ class QuantSpec(object):
             defstr_feval = sq_feval
         else:
             # HACK: fix simplify_str()'s return of vector arg with round braces
-            if self.isvector() and defstr_feval[0]=='(' and defstr_feval[-1]==')':
-                defstr_feval = '['+defstr_feval[1:-1]+']'
+            if self.isvector() and defstr_feval[0] == "(" and defstr_feval[-1] == ")":
+                defstr_feval = "[" + defstr_feval[1:-1] + "]"
         # otherwise, continue pre-process simplified definition strings
-        for clause_type in ('if', 'max', 'min', 'sum'):
+        for clause_type in ("if", "max", "min", "sum"):
             if clause_type not in localfuncs:
                 continue
             # protect condition or max/min clauses from being Python-eval'd
@@ -1829,26 +2056,29 @@ class QuantSpec(object):
             n_ix = 0
             for stmt_ix in range(num_stmts):
                 n_ix = qtoks[n_ix:].index(clause_type) + n_ix
-                if clause_type == 'if':
-                    stop_ix = qtoks[n_ix:].index(',')+n_ix
+                if clause_type == "if":
+                    stop_ix = qtoks[n_ix:].index(",") + n_ix
                 else:
-                    stop_ix = findEndBrace(qtoks[n_ix+1:])+n_ix+1
-                clause_original = "".join(qtoks[n_ix+2:stop_ix])
-                clause = "".join(qtemp.parser.tokenized[n_ix+2:stop_ix])
-                defstr = defstr.replace(clause,'__temp_clause__'+str(stmt_ix))
-                defstr_feval = defstr_feval.replace(clause,'__temp_clause__'+str(stmt_ix))
+                    stop_ix = findEndBrace(qtoks[n_ix + 1 :]) + n_ix + 1
+                clause_original = "".join(qtoks[n_ix + 2 : stop_ix])
+                clause = "".join(qtemp.parser.tokenized[n_ix + 2 : stop_ix])
+                defstr = defstr.replace(clause, "__temp_clause__" + str(stmt_ix))
+                defstr_feval = defstr_feval.replace(
+                    clause, "__temp_clause__" + str(stmt_ix)
+                )
                 # add to inverse name map to restore clauses after eval()
-                FScompat_namemapInv['__temp_clause__'+str(stmt_ix)] = clause_original
-                qtemp.freeSymbols.append('__temp_clause__'+str(stmt_ix))
+                FScompat_namemapInv["__temp_clause__" + str(stmt_ix)] = clause_original
+                qtemp.freeSymbols.append("__temp_clause__" + str(stmt_ix))
                 n_ix = stop_ix
         else:
             num_stmts = 0
         # add underscored suffix to built in function names to avoid clashing
         # with actual Python names, e.g. "if", "for"
         if not num_qtemp:
-            freenamelist = remain(qtemp.freeSymbols,
-                                  allmathnames_symbolic + localfuncs)
-            local_scope = dict(zip(freenamelist,[QuantSpec(symb) for symb in freenamelist]))
+            freenamelist = remain(qtemp.freeSymbols, allmathnames_symbolic + localfuncs)
+            local_scope = dict(
+                zip(freenamelist, [QuantSpec(symb) for symb in freenamelist])
+            )
             local_scope.update(local_fndef)
             local_scope_feval = copy(local_scope)
             if eval_type == 1:
@@ -1873,25 +2103,28 @@ class QuantSpec(object):
             # simplified numeric version otherwise (including lower case functions)
             try:
                 new_qtemp = eval(defstr_feval, {}, local_scope_feval)
-                assert isinstance(new_qtemp, (Quantity, QuantSpec, str, list, \
-                                        _num_types))
+                assert isinstance(
+                    new_qtemp, (Quantity, QuantSpec, str, list, _num_types)
+                )
             except:
                 new_qtemp = QuantSpec(self.subjectToken, defstr_feval, self.specType)
         elif eval_type == 0:
             try:
                 new_qtemp = eval(defstr, {}, local_scope)
-                assert isinstance(new_qtemp, (Quantity, QuantSpec, str, list, \
-                                    _num_types))
+                assert isinstance(
+                    new_qtemp, (Quantity, QuantSpec, str, list, _num_types)
+                )
                 # assume that number of braces correlates with complexity
                 # only keep this if trying to simplify and expression becomes
                 # simpler, or we're trying to reduce float sub-expressions
-                assert str(new_qtemp).count('(') <= defstr.count('('), \
-                       "Didn't get simpler -- going to except clause"
+                assert str(new_qtemp).count("(") <= defstr.count(
+                    "("
+                ), "Didn't get simpler -- going to except clause"
             except:
                 new_qtemp = QuantSpec(self.subjectToken, defstr, self.specType)
             # if just simplifying then assume that number of braces
             # correlates with complexity
-            if str(new_qtemp).count('(') > self.specStr.count('('):
+            if str(new_qtemp).count("(") > self.specStr.count("("):
                 # didn't get simpler, so quit now
                 return self
         else:
@@ -1906,13 +2139,11 @@ class QuantSpec(object):
             # Turn math functions back to title case if float eval failed
             # but only those that weren't originally in lower case
             if eval_type != -1:
-                new_qtemp.mapNames(filteredDict(inverseMathNameMap,
-                                                qtoks, 1))
+                new_qtemp.mapNames(filteredDict(inverseMathNameMap, qtoks, 1))
             # make sure specType is set correctly
             new_qtemp.specType = self.specType
         new_qtemp.mapNames(FScompat_namemapInv)
         return new_qtemp
-
 
     def tonumeric(self):
         if self.freeSymbols == []:
@@ -1929,18 +2160,22 @@ class QuantSpec(object):
         else:
             raise TypeError("Cannot convert this QuantSpec to a numeric type")
 
-
     def mapNames(self, nameMap):
         """Can pass a dictionary or a symbolMapClass instance to this method,
         but it will convert it internally to a symbolMapClass."""
         namemap = symbolMapClass(nameMap)
         newsubj = namemap(self.subjectToken)
-        if isinstance(newsubj, str) and \
-              (isNameToken(newsubj, True) or \
-               isHierarchicalName(newsubj, treatMultiRefs=True)):
+        if isinstance(newsubj, str) and (
+            isNameToken(newsubj, True)
+            or isHierarchicalName(newsubj, treatMultiRefs=True)
+        ):
             self.subjectToken = newsubj
         else:
-            print("Attempted to rename %s with object of type %s, value:"%(self.subjectToken,str(type(newsubj))) + newsubj)
+            print(
+                "Attempted to rename %s with object of type %s, value:"
+                % (self.subjectToken, str(type(newsubj)))
+                + newsubj
+            )
             raise TypeError("Cannot rename a QuantSpec with a non-name string")
         toks = [namemap(t) for t in self.parser.tokenized]
         # strip() in case spaces were preserved and there were trailing spaces
@@ -1948,19 +2183,19 @@ class QuantSpec(object):
         # that there's a badly indented code block following the function body)
         self.specStr = "".join(toks).strip()
         self.parser.specStr = self.specStr
-        self.specStr = \
-                self.parser.parse(self.parser.ignoreTokens, None,
-                                  includeProtected=self.parser.includeProtected,
-                                  reset=True)
+        self.specStr = self.parser.parse(
+            self.parser.ignoreTokens,
+            None,
+            includeProtected=self.parser.includeProtected,
+            reset=True,
+        )
         self.usedSymbols = self.parser.usedSymbols
         self.freeSymbols = self.parser.freeSymbols
-
 
     # difficult to reconstruct original options at __init__, so just copy by pickle
     def __copy__(self):
         pickledself = pickle.dumps(self)
         return pickle.loads(pickledself)
-
 
     def __deepcopy__(self, memo=None, _nil=[]):
         pickledself = pickle.dumps(self)
@@ -1970,6 +2205,7 @@ class QuantSpec(object):
 # --------------------------------------------------------------------------
 ### Multi-quantity reference and multi-quantity definition utilities
 
+
 def processMultiDef(s, specstr, specType):
     # Assume attempt was made at using a multiple Quantity definition
     # (i.e. that isMultiDef() returned true).
@@ -1978,7 +2214,7 @@ def processMultiDef(s, specstr, specType):
     # allowed in a QuantSpec subjectToken.
     # Correct format is "<symbol 1>[<symbol 2>,<int 1>,<int 2>]"
     # where s1 != s2 and i1 < i2, and s1 does not end in a number
-    m = parserObject(s, ignoreTokens=['['])
+    m = parserObject(s, ignoreTokens=["["])
     i1 = eval(m.tokenized[4])
     i2 = eval(m.tokenized[6])
     rootname = m.tokenized[0]
@@ -1988,30 +2224,35 @@ def processMultiDef(s, specstr, specType):
     else:
         test_ix = 0
     root_test = isNameToken(rootname) and rootname[test_ix] not in num_chars
-    if not alltrue([len(m.usedSymbols)==4, m.tokenized[1]=="[",
-                root_test, isNameToken(ixname),
-                m.tokenized[7]=="]", rootname != ixname,
-                m.tokenized[3]==m.tokenized[5]==",",
-                compareNumTypes(type(i1), type(i2)) and isinstance(i1, _int_types),
-                 i1 < i2]):
-        raise ValueError("Syntax error in multiple Quantity definition "
-                         "spec: " + s)
+    if not alltrue(
+        [
+            len(m.usedSymbols) == 4,
+            m.tokenized[1] == "[",
+            root_test,
+            isNameToken(ixname),
+            m.tokenized[7] == "]",
+            rootname != ixname,
+            m.tokenized[3] == m.tokenized[5] == ",",
+            compareNumTypes(type(i1), type(i2)) and isinstance(i1, _int_types),
+            i1 < i2,
+        ]
+    ):
+        raise ValueError("Syntax error in multiple Quantity definition " "spec: " + s)
     ## Check that all x[f(i)] references have f(i) integers
     # any references outside i1..i2 become freeSymbols, for x
     # either z or another symbol (known as 'root' below).
     # Also, any zXX refs present in the mrefs, where XX is not in
     # the range [i1,i2], are free symbols of this Quantity
     # because they aren't being defined here
-    defrange = range(i1,i2+1)
+    defrange = range(i1, i2 + 1)
     # Quantity subject token is 'z[<ixname>]'
     # and future 'name' attribute
     token = rootname + "[" + ixname + "]"
-    all_mrefs = {}    # dict of rootname -> valsref'd list
+    all_mrefs = {}  # dict of rootname -> valsref'd list
     mrefs = findMultiRefs(specstr)
     actual_freeSymbols = []
     for tup in mrefs:
-        mref = processMultiRef(tup[1], tup[0],
-                              ixname, defrange)
+        mref = processMultiRef(tup[1], tup[0], ixname, defrange)
         all_mrefs[tup[0]] = mref
         if tup[0] == rootname:
             # ignore ones being defined here
@@ -2019,24 +2260,25 @@ def processMultiDef(s, specstr, specType):
         else:
             out_of_range = mref
         # only add those names not yet present in freeSymbols
-        actual_freeSymbols.extend(remain([tup[0] + str(i) for i in\
-                             out_of_range], actual_freeSymbols))
+        actual_freeSymbols.extend(
+            remain([tup[0] + str(i) for i in out_of_range], actual_freeSymbols)
+        )
     ## Find direct references to z1-z10 in spec.
     # avoid using square brackets when making temp_spec
-    surrogateToken = "__"+rootname+"__"
+    surrogateToken = "__" + rootname + "__"
     surrogateSpec = specstr
     for (r, targetExpr) in mrefs:
-        if r==rootname:
-            surrogateSpec = surrogateSpec.replace(targetExpr,
-                                                  surrogateToken)
+        if r == rootname:
+            surrogateSpec = surrogateSpec.replace(targetExpr, surrogateToken)
     # making temp a QuantSpec gives us a free check for the
     # legality of the specType
     try:
-        temp_qspec = QuantSpec(surrogateToken, surrogateSpec,
-                               specType, treatMultiRefs=True)
+        temp_qspec = QuantSpec(
+            surrogateToken, surrogateSpec, specType, treatMultiRefs=True
+        )
     except ValueError as e:
         # replace temp name __z__ with actual token name z[i]
-        new_e = (e[0].replace(surrogateToken, token))
+        new_e = e[0].replace(surrogateToken, token)
         raise ValueError(new_e)
     for f in temp_qspec.freeSymbols:
         try:
@@ -2049,8 +2291,7 @@ def processMultiDef(s, specstr, specType):
             # find out if the root of the symbol is rootname
             # then find out if the tail number is in the
             # defining range.
-            if f[:p] == rootname and int(f[p:]) \
-                    not in defrange:
+            if f[:p] == rootname and int(f[p:]) not in defrange:
                 # it is not in range, so is not being defined
                 # by this multiple Quantity definition, thus
                 # it is a true free Symbol of this Quantity
@@ -2064,9 +2305,8 @@ def processMultiDef(s, specstr, specType):
                 actual_freeSymbols.append(f)
     # use multi-ref treatment option for QuantSpec
     # NOTE -- 'subjectToken' was just 'token'
-    subjectToken = rootname+'['+ixname+','+str(i1)+','+str(i2)+']'
-    actual_spec = QuantSpec(subjectToken, specstr, specType,
-                            treatMultiRefs=True)
+    subjectToken = rootname + "[" + ixname + "," + str(i1) + "," + str(i2) + "]"
+    actual_spec = QuantSpec(subjectToken, specstr, specType, treatMultiRefs=True)
     mdef = (rootname, ixname, i1, i2, token)
     return mdef, actual_spec, actual_freeSymbols
 
@@ -2074,19 +2314,25 @@ def processMultiDef(s, specstr, specType):
 def isMultiDef(s):
     """Determine whether string is a candidate multiple Quantity definition."""
 
-    temp = parserObject(s, ignoreTokens=['['])
+    temp = parserObject(s, ignoreTokens=["["])
     try:
-        return alltrue([not temp.isCompound(), len(temp.tokenized)==8,
-                        isNameToken(temp.tokenized[0]),
-                        isNameToken(temp.tokenized[2]),
-                        temp.tokenized[1]=="[", temp.tokenized[-1]=="]"])
+        return alltrue(
+            [
+                not temp.isCompound(),
+                len(temp.tokenized) == 8,
+                isNameToken(temp.tokenized[0]),
+                isNameToken(temp.tokenized[2]),
+                temp.tokenized[1] == "[",
+                temp.tokenized[-1] == "]",
+            ]
+        )
     except IndexError:
         # e.g. if string doesn't contain enough tokens
         return False
 
 
 def findMultiRefs(s):
-    temp = parserObject(s, ignoreTokens=['['])
+    temp = parserObject(s, ignoreTokens=["["])
     # reflist contains tuples of (rootname, expr)
     reflist = []
     searchSymbols = temp.freeSymbols
@@ -2108,18 +2354,23 @@ def findMultiRefs(s):
             break
         # find contents of [ ... ]
         try:
-            if toks_to_process[next_free+1] == "[":
+            if toks_to_process[next_free + 1] == "[":
                 try:
-                    rb_ix = toks_to_process[next_free+1:].index("]") \
-                            + next_free + 1
+                    rb_ix = toks_to_process[next_free + 1 :].index("]") + next_free + 1
                 except ValueError:
-                    raise ValueError("Mismatched square braces in multiple "
-                                     "quantity reference specification: " + s)
-                reflist.append((toks_to_process[next_free],
-                           "".join(toks_to_process[next_free:rb_ix+1])))
-                toks_to_process = toks_to_process[rb_ix+1:]
+                    raise ValueError(
+                        "Mismatched square braces in multiple "
+                        "quantity reference specification: " + s
+                    )
+                reflist.append(
+                    (
+                        toks_to_process[next_free],
+                        "".join(toks_to_process[next_free : rb_ix + 1]),
+                    )
+                )
+                toks_to_process = toks_to_process[rb_ix + 1 :]
             else:
-                toks_to_process = toks_to_process[next_free+1:]
+                toks_to_process = toks_to_process[next_free + 1 :]
         except IndexError:
             # symbol is last in tokenized
             break
@@ -2133,7 +2384,7 @@ def isMultiRef(s):
     Requires further testing using one of the other associated multiple
     quantity reference/definition tests."""
     if len(s) > 1:
-        sparts = s.split('[')
+        sparts = s.split("[")
         # check that '[' occurs as '<name>['
         if len(sparts) > 1:
             try:
@@ -2153,26 +2404,30 @@ def processMultiRef(s, rootname, ixname, ok_range):
     # "rootname[<expr in ixname>]" for a valid rootname (does not end in
     # a number), where the expression evaluates to an integer when ixname
     # is substituted by an integer in the range ok_range = [i1,i2].
-    temp = parserObject(s, ignoreTokens=['['])
+    temp = parserObject(s, ignoreTokens=["["])
     try:
         if len(rootname) > 1:
             test_ix = -1
         else:
             test_ix = 0
         roottest = rootname[test_ix] not in num_chars
-        if not alltrue([roottest, len(temp.tokenized) >= 4,
-                    temp.tokenized[0] == rootname,
-                    rootname in temp.freeSymbols,
-                    ixname in temp.freeSymbols,
-                    rootname not in temp.tokenized[1:],
-                    temp.tokenized[1]=="[", temp.tokenized[-1]=="]"]):
-            raise ValueError("Error in multiple Quantity reference "
-                             "spec: " + s)
+        if not alltrue(
+            [
+                roottest,
+                len(temp.tokenized) >= 4,
+                temp.tokenized[0] == rootname,
+                rootname in temp.freeSymbols,
+                ixname in temp.freeSymbols,
+                rootname not in temp.tokenized[1:],
+                temp.tokenized[1] == "[",
+                temp.tokenized[-1] == "]",
+            ]
+        ):
+            raise ValueError("Error in multiple Quantity reference " "spec: " + s)
         # then we have a fully syntax-checked multiple quantity ref
     except IndexError:
         # e.g. temp.tokenized[1] --> index out of bounds
-        raise ValueError("Error in multiple Quantity reference "
-                         "spec: " + s)
+        raise ValueError("Error in multiple Quantity reference " "spec: " + s)
     # test evaluation of every expression for ixname in range [i1, i2] to be
     # an integer, where expr is everything between the square brackets
     original_tokenlist = temp.tokenized[2:-1]
@@ -2203,14 +2458,16 @@ def processMultiRef(s, rootname, ixname, ok_range):
             if val not in vals_refd:
                 vals_refd.append(val)
     except AssertionError:
-        raise ValueError("Non-integer evaluation of the index-generating "
-                         "expression of multiple Quantity reference spec:"
-                         " " + s)
+        raise ValueError(
+            "Non-integer evaluation of the index-generating "
+            "expression of multiple Quantity reference spec:"
+            " " + s
+        )
     return vals_refd
 
 
 def isMultiDefClash(obj, multiDefRefs, parentname=None):
-    result = False    # default, initial value
+    result = False  # default, initial value
     if isMultiDef(obj.name):
         objinfo = obj.multiDefInfo
         # objinfo == (True, rootname, ixname, i1, i2)
@@ -2228,16 +2485,15 @@ def isMultiDefClash(obj, multiDefRefs, parentname=None):
             if is_present:
                 # have more work to do, to establish which numbers are
                 # already defined.
-                obj_range = Interval('obj', int,
-                                     [objinfo[3], objinfo[4]])
-                self_range = Interval('self', int,
-                                      [infotuple[1], infotuple[2]])
+                obj_range = Interval("obj", int, [objinfo[3], objinfo[4]])
+                self_range = Interval("self", int, [infotuple[1], infotuple[2]])
                 if obj_range.intersect(self_range) is not None:
                     result = True
         else:
             # obj.name should not have returned as isMultiDef!
-            raise ValueError("Object %s contains invalid multiple quantity"
-                             " definitions"%obj.name)
+            raise ValueError(
+                "Object %s contains invalid multiple quantity" " definitions" % obj.name
+            )
     else:
         # is the single variable obj.name one of the multiDefRefs
         try:
@@ -2246,12 +2502,12 @@ def isMultiDefClash(obj, multiDefRefs, parentname=None):
             # obj.name does not end in a number, so cannot clash
             return False
         obj_rootname = obj.name[:p]
-        obj_ix = int(obj.name[p:])    # known to be ok integer
+        obj_ix = int(obj.name[p:])  # known to be ok integer
         for rootname, infotuple in multiDefRefs.items():
             if obj_rootname == rootname:
                 # root of the name is present
                 # so check if the number falls in the subject range
-                if obj_ix in range(infotuple[3], infotuple[4]+1):
+                if obj_ix in range(infotuple[3], infotuple[4] + 1):
                     result = True
                     break
     return result
@@ -2260,9 +2516,11 @@ def isMultiDefClash(obj, multiDefRefs, parentname=None):
 def evalMultiRefToken(mref, ixname, val):
     """Helper function for evaluating multi-reference tokens for
     given index values."""
-    return eval(mref.replace(ixname,str(val)), {}, {})
+    return eval(mref.replace(ixname, str(val)), {}, {})
+
 
 # ------------------------------------------------------------------------
+
 
 class Quantity(object):
     """Abstract class for symbolic numerical quantities."""
@@ -2272,7 +2530,7 @@ class Quantity(object):
     targetLangs = ()
 
     def __init__(self, spec, name="", domain=None, specType=None):
-        self.multiDefInfo = (False, "", "", 0, 0)   # initial, default value
+        self.multiDefInfo = (False, "", "", 0, 0)  # initial, default value
         if isinstance(strIfSeq(spec), str):
             spec = strIfSeq(spec)
             if isNameToken(spec):
@@ -2281,7 +2539,7 @@ class Quantity(object):
                     # spec symbol is being renamed to name
                     token = name.strip()
                     actual_spec = QuantSpec(token, spec, specType)
-                elif name=="":
+                elif name == "":
                     # spec and name are to be the same
                     token = spec.strip()
                     actual_spec = QuantSpec(token, "", specType)
@@ -2294,12 +2552,14 @@ class Quantity(object):
             elif isMultiDef(name):
                 # declaring multiple symbols at once, with their definition
                 # in spec
-                if self.typestr == 'auxfn':
-                    raise TypeError("Multiple quantity definition is invalid "
-                                    "for function definitions")
-                mdef, actual_spec, actual_freeSymbols = processMultiDef(name,
-                                                                        spec,
-                                                                    specType)
+                if self.typestr == "auxfn":
+                    raise TypeError(
+                        "Multiple quantity definition is invalid "
+                        "for function definitions"
+                    )
+                mdef, actual_spec, actual_freeSymbols = processMultiDef(
+                    name, spec, specType
+                )
                 # z[i,1,10] --> rootname = 'z', ixname = 'i', i1=1, i2=10
                 rootname = mdef[0]
                 ixname = mdef[1]
@@ -2319,15 +2579,18 @@ class Quantity(object):
                 elif isMultiDef(name):
                     # declaring multiple symbols at once, with their definition
                     # in spec
-                    if self.typestr == 'auxfn':
-                        raise TypeError("Multiple quantity definition is invalid "
-                                        "for function definitions")
+                    if self.typestr == "auxfn":
+                        raise TypeError(
+                            "Multiple quantity definition is invalid "
+                            "for function definitions"
+                        )
                     if specType is not None:
                         actual_specType = specType
                     else:
                         actual_specType = spec.specType
-                    mdef, actual_spec, actual_freeSymbols = \
-                           processMultiDef(name, spec.specStr, actual_specType)
+                    mdef, actual_spec, actual_freeSymbols = processMultiDef(
+                        name, spec.specStr, actual_specType
+                    )
                     # z[i,1,10] --> rootname = 'z', ixname = 'i', i1=1, i2=10
                     rootname = mdef[0]
                     ixname = mdef[1]
@@ -2351,7 +2614,7 @@ class Quantity(object):
             if isNameToken(name):
                 token = name.strip()
             else:
-                raise ValueError("Invalid name '%s' for this Quantity"%name)
+                raise ValueError("Invalid name '%s' for this Quantity" % name)
             actual_spec = QuantSpec(token, spec.name)
             if specType is not None:
                 # override default specType from QuantSpec in case
@@ -2365,9 +2628,10 @@ class Quantity(object):
             actual_spec = QuantSpec(token, repr(spec), specType)
         else:
             raise TypeError("Invalid spec argument")
-        if token == 'for':
-            raise ValueError("Cannot use reserved macro name 'for' as a "
-                             "Quantity's name")
+        if token == "for":
+            raise ValueError(
+                "Cannot use reserved macro name 'for' as a " "Quantity's name"
+            )
         else:
             self.name = token
         self.spec = actual_spec
@@ -2375,7 +2639,7 @@ class Quantity(object):
         if self.multiDefInfo[0]:
             # must override spec's free symbol list with doctored one
             self.freeSymbols = remain(actual_freeSymbols, self.name)
-#            self.usedSymbols = actual_usedSymbols
+        #            self.usedSymbols = actual_usedSymbols
         else:
             self.freeSymbols = remain(self.spec.freeSymbols, self.name)
         self.usedSymbols = self.spec.usedSymbols
@@ -2394,36 +2658,31 @@ class Quantity(object):
         self.funcSpecDict = {}
         self.validate()
 
-
     def setDomain(self, domain):
         if isinstance(domain, list):
             # assume continuous-valued float
-            assert len(domain)==2, "Domain-as-list must have length 2"
+            assert len(domain) == 2, "Domain-as-list must have length 2"
             d = (float, Continuous, domain)
         elif isinstance(domain, tuple):
             # full spec is a 3-tuple
-            assert len(domain)==3, "Domain-as-tuple must have length 3"
-            assert compareNumTypes(domain[0], _num_types), \
-                   "Invalid domain numeric type"
-            assert domain[1] in [Continuous, Discrete], \
-                            "Invalid domain type"
+            assert len(domain) == 3, "Domain-as-tuple must have length 3"
+            assert compareNumTypes(domain[0], _num_types), "Invalid domain numeric type"
+            assert domain[1] in [Continuous, Discrete], "Invalid domain type"
             if compareNumTypes(domain[0], _int_types):
                 assert domain[1] is Discrete, "Domain type mismatch"
             d = domain
         else:
-            raise TypeError("Invalid domain argument: "+type(domain))
+            raise TypeError("Invalid domain argument: " + type(domain))
         self.domain = d
 
     def redefine(self, specStr):
         self.spec.redefine(specStr)
 
     def isspecdefined(self):
-        return self.spec.specStr.strip() != ''
-
+        return self.spec.specStr.strip() != ""
 
     def __contains__(self, tok):
         return tok in self.spec.parser.tokenized
-
 
     def __call__(self):
         return copy(self.spec)
@@ -2435,23 +2694,24 @@ class Quantity(object):
         """Is the quantity spec of the form [a,b,c]"""
         try:
             # minimum check necessary at this point to determine this
-            return '['==self.spec.specStr[0] and ']'==self.spec.specStr[-1]
+            return "[" == self.spec.specStr[0] and "]" == self.spec.specStr[-1]
         except IndexError:
             return False
-
 
     def fromvector(self, ix=None):
         """Turn the Quantity's specification of a vector to a list of
         the element's specifications."""
         if self.isvector():
             if self.dim > 0:
-                arglist = splitargs(self.spec.specStr[1:-1], ['(','['], [')',']'])
-                res = [QuantSpec(self.name+'_%i'%i,
-                                 arglist[i], self.specType) \
-                        for i in range(self.dim)]
+                arglist = splitargs(self.spec.specStr[1:-1], ["(", "["], [")", "]"])
+                res = [
+                    QuantSpec(self.name + "_%i" % i, arglist[i], self.specType)
+                    for i in range(self.dim)
+                ]
             else:
-                res = [QuantSpec(self.name+"_0", self.spec.specStr[1:-1],
-                                     self.specType)]
+                res = [
+                    QuantSpec(self.name + "_0", self.spec.specStr[1:-1], self.specType)
+                ]
             if ix is None:
                 return res
             else:
@@ -2461,7 +2721,6 @@ class Quantity(object):
                     raise IndexError("Index out of range in vector Quantity")
         else:
             raise TypeError("This Quantity does not specify a vector")
-
 
     def __setitem__(self, x, v):
         raise NotImplementedError
@@ -2478,32 +2737,36 @@ class Quantity(object):
             ixname = m[2]
             i1 = m[3]
             i2 = m[4]
-            if x in range(i1,i2+1):
+            if x in range(i1, i2 + 1):
                 tokenized = []
                 for t in self.spec.parser.tokenized:
                     # can trust that t starting with '[' is a valid mref
                     # because it was checked at initialization
-                    if t[0] == '[':
+                    if t[0] == "[":
                         # append evaluated integer without brackets
-                        tokenized.append(str(evalMultiRefToken(t[1:-1],
-                                                               ixname, x)))
+                        tokenized.append(str(evalMultiRefToken(t[1:-1], ixname, x)))
                     elif t == ixname:
                         tokenized.append(str(x))
                     else:
                         tokenized.append(t)
                 # make the appropriate sub-type of Quantity to return
                 q = Quantity.__new__(self.__class__)
-                q.__init__("".join(tokenized), rootname + str(x),
-                           specType=self.specType)
+                q.__init__(
+                    "".join(tokenized), rootname + str(x), specType=self.specType
+                )
                 return q
             else:
-                raise IndexError("Index to multiple Quantity definition out "
-                                 "of the valid range [%i,%i]"%(i1,i2))
+                raise IndexError(
+                    "Index to multiple Quantity definition out "
+                    "of the valid range [%i,%i]" % (i1, i2)
+                )
         elif self.isvector():
             return self.fromvector(x)
         else:
-            raise IndexError("Quantity %s does not contain multiple "
-                     "definitions and is not a vector of symbols"%self.name)
+            raise IndexError(
+                "Quantity %s does not contain multiple "
+                "definitions and is not a vector of symbols" % self.name
+            )
 
     def tonumeric(self):
         if self.spec.freeSymbols == []:
@@ -2520,7 +2783,6 @@ class Quantity(object):
         else:
             raise TypeError("Cannot convert this Quantity to a numeric type")
 
-
     # -------------- method group for spec string assembly
     def __combine(self, other, opstr, reverseorder=0):
         if isinstance(other, QuantSpec):
@@ -2530,11 +2792,11 @@ class Quantity(object):
             other_specType = other.specType
             otherstr = other.name
         elif isinstance(other, str):
-            other_specType = 'ExpFuncSpec'
+            other_specType = "ExpFuncSpec"
             otherstr = other
         elif isinstance(other, _num_types):
             otherstr = str(other)
-            other_specType = 'ExpFuncSpec'
+            other_specType = "ExpFuncSpec"
         else:
             raise TypeError("Invalid types to combine")
         try:
@@ -2544,9 +2806,9 @@ class Quantity(object):
             raise
         r2 = QuantSpec("__result__", self.name, self.specType)
         if reverseorder:
-            return eval('r1' + opstr + 'r2')
+            return eval("r1" + opstr + "r2")
         else:
-            return eval('r2' + opstr + 'r1')
+            return eval("r2" + opstr + "r1")
 
     def __add__(self, other):
         return self.__combine(other, "+")
@@ -2576,11 +2838,11 @@ class Quantity(object):
     __rtruediv__ = __rdiv__
 
     def __pow__(self, other):
-        dummy = QuantSpec('__result__', self.name)
+        dummy = QuantSpec("__result__", self.name)
         return dummy.__pow__(other)
 
     def __rpow__(self, other):
-        dummy = QuantSpec('__result__', self.name)
+        dummy = QuantSpec("__result__", self.name)
         return dummy.__pow__(other, 1)
 
     def __neg__(self):
@@ -2597,21 +2859,20 @@ class Quantity(object):
             if self.multiDefInfo[0]:
                 # then add non-definition version of name to dictionary,
                 # i.e. add z[i] to dictionary containing z[i,0,4]
-                rootname = self.name.split('[')[0]
+                rootname = self.name.split("[")[0]
                 ix = self.multiDefInfo[2]
                 parentname = new_name.split(NAMESEP)[0]
-                nameMap[rootname+'['+ix+']'] = \
-                                 parentname+NAMESEP+rootname+'['+ix+']'
+                nameMap[rootname + "[" + ix + "]"] = (
+                    parentname + NAMESEP + rootname + "[" + ix + "]"
+                )
             self.name = new_name
         self.spec.mapNames(nameMap)
         self.spec._check_self_ref()
         self.freeSymbols = remain(self.spec.freeSymbols, self.name)
         self.usedSymbols = self.spec.usedSymbols
 
-
     def compileFuncSpec(self):
         raise NotImplementedError("Only call this method on a concrete sub-class")
-
 
     def simplify(self):
         qtemp = self.spec._eval(0)
@@ -2619,12 +2880,11 @@ class Quantity(object):
         self.freeSymbols = remain(self.spec.freeSymbols, self.name)
         self.usedSymbols = self.spec.usedSymbols
 
-
     def renderForCode(self):
         """Return code-ready version of spec (e.g. uncapitalize built-in
         function names)"""
         quant = copy(self)
-        quant.spec = self.spec.renderForCode() #._eval(0, {})
+        quant.spec = self.spec.renderForCode()  # ._eval(0, {})
         quant.freeSymbols = remain(quant.spec.freeSymbols, quant.name)
         quant.usedSymbols = quant.spec.usedSymbols
         return quant
@@ -2636,68 +2896,69 @@ class Quantity(object):
         """eval does not require all free symbols to be resolved, but any
         signature arguments (for a function) must be resolved."""
         arglist = list(defs.keys())
-        if hasattr(self, 'signature'):
+        if hasattr(self, "signature"):
             if not alltrue([s in arglist for s in self.signature]):
-                raise ValueError("All function signature arguments are "
-                                 "necessary for evaluation")
+                raise ValueError(
+                    "All function signature arguments are " "necessary for evaluation"
+                )
         return self.spec._eval(1, *scopearg, **defs)
-
 
     def validate(self):
         if not isinstance(self.domain, tuple):
-            raise TypeError("Expected 3-tuple for domain of token '" \
-                                + self.name + "'")
+            raise TypeError("Expected 3-tuple for domain of token '" + self.name + "'")
         if len(self.domain) != 3:
-            raise TypeError("Expected 3-tuple for domain of token '" \
-                                + self.name + "'")
+            raise TypeError("Expected 3-tuple for domain of token '" + self.name + "'")
         if not isinstance(self.spec, QuantSpec):
             raise TypeError("spec field not of type QuantSpec")
         if self.spec.subjectToken != self.name:
             # only raise error if it's not a multiple quantity definition,
             # for which these aren't going to match
             if not isMultiDef(self.name):
-                raise ValueError("spec target mismatch for token '" \
-                             + self.name + "' vs. '" + self.spec.subjectToken \
-                             +"'")
+                raise ValueError(
+                    "spec target mismatch for token '"
+                    + self.name
+                    + "' vs. '"
+                    + self.spec.subjectToken
+                    + "'"
+                )
         assert isinstance(self.spec.specStr, str), "specStr invalid"
         assert self.spec.specType in specTypes, "specType invalid"
         bad_tls = remain(self.targetLangs, targetLangs)
-        if len(bad_tls)>0:
+        if len(bad_tls) > 0:
             print("Invalid target languages:%s" % bad_tls)
             raise ValueError("Invalid target language specified")
-        if self.typestr != 'var' and self.specType != 'ExpFuncSpec':
-            raise TypeError("Invalid spec type specified for %s"%className(self))
+        if self.typestr != "var" and self.specType != "ExpFuncSpec":
+            raise TypeError("Invalid spec type specified for %s" % className(self))
         # !! check that compatibleGens point to known Generator types !!
         # if get this far without raising exception, then valid
 
-
     def isDefined(self, verbose=False):
         self.validate()
-        if not self.spec.isDefined(verbose) and self.typestr != 'par':
+        if not self.spec.isDefined(verbose) and self.typestr != "par":
             if verbose:
-                print("'%s' ill defined: bound spec string is required"%self.name)
+                print("'%s' ill defined: bound spec string is required" % self.name)
             return False
         if len(self.compatibleGens) == 0:
             if verbose:
-                print("'%s' ill defined: compatibleGens is empty"%self.name)
+                print("'%s' ill defined: compatibleGens is empty" % self.name)
             return False
         return True
 
-# bindSpec is broken until it knows how to deal with multi-quantity defs/refs
-#    def bindSpec(self, spec):
-#        if isinstance(spec, QuantSpec):
-#            if spec.subjectToken != self.name:
-#                raise ValueError(self.typestr + " name '" + self.name + "'" \
-#                             + " does not match '" + spec.subjectToken + "'")
-#            self.spec = spec
-#        else:
-#            raise TypeError("Invalid spec argument")
-#        self.freeSymbols = self.findFreeSymbols()??
-#        self.specType = spec.specType
-#        self.validate()
+    # bindSpec is broken until it knows how to deal with multi-quantity defs/refs
+    #    def bindSpec(self, spec):
+    #        if isinstance(spec, QuantSpec):
+    #            if spec.subjectToken != self.name:
+    #                raise ValueError(self.typestr + " name '" + self.name + "'" \
+    #                             + " does not match '" + spec.subjectToken + "'")
+    #            self.spec = spec
+    #        else:
+    #            raise TypeError("Invalid spec argument")
+    #        self.freeSymbols = self.findFreeSymbols()??
+    #        self.specType = spec.specType
+    #        self.validate()
 
     def __repr__(self):
-        return "%s %s (%s)"%(className(self),self.name,self.specType)
+        return "%s %s (%s)" % (className(self), self.name, self.specType)
 
     def __str__(self):
         return self.name
@@ -2705,15 +2966,23 @@ class Quantity(object):
     def info(self, verboselevel=1):
         if verboselevel > 0:
             # info is defined in utils.py
-            utils_info(self.__dict__, "ModelSpec " + self.name,
-                 recurseDepthLimit=1+verboselevel)
+            utils_info(
+                self.__dict__,
+                "ModelSpec " + self.name,
+                recurseDepthLimit=1 + verboselevel,
+            )
         else:
             print(self.__repr__())
 
     def __hash__(self):
-        h = (hash(type(self)), hash(self.name), hash(str(self.spec)),
-               hash(str(self.domain[0])), hash(str(self.domain[1])),
-               hash(str(self.domain[2])))
+        h = (
+            hash(type(self)),
+            hash(self.name),
+            hash(str(self.spec)),
+            hash(str(self.domain[0])),
+            hash(str(self.domain[1])),
+            hash(str(self.domain[2])),
+        )
         return int(sum(h))
 
     def __eq__(self, other, diff=False):
@@ -2721,8 +2990,9 @@ class Quantity(object):
         try:
             results.append(type(self) == type(other))
             results.append(self.name == other.name)
-            results.extend([str(self.domain[i]) == str(other.domain[i]) \
-                           for i in [0,1,2]])
+            results.extend(
+                [str(self.domain[i]) == str(other.domain[i]) for i in [0, 1, 2]]
+            )
             results.append(self.spec == other.spec)
         except AttributeError as e:
             if diff:
@@ -2740,8 +3010,8 @@ class Quantity(object):
         """Show differences in comparison to another Quantity."""
         self.__eq__(other, diff=True)
 
-#    def compileFuncSpec(self):
-#        self.funcSpecDict = {self.typestr+'s': [deepcopy(self)]}
+    #    def compileFuncSpec(self):
+    #        self.funcSpecDict = {self.typestr+'s': [deepcopy(self)]}
 
     def __copy__(self):
         pickledself = pickle.dumps(self)
@@ -2751,22 +3021,24 @@ class Quantity(object):
         pickledself = pickle.dumps(self)
         return pickle.loads(pickledself)
 
+
 # ------------------------------------------------------------------------
 
+
 class Par(Quantity):
-    typestr = 'par'
+    typestr = "par"
 
 
 class Var(Quantity):
-    typestr = 'var'
+    typestr = "var"
 
 
 class Input(Quantity):
-    typestr = 'input'
+    typestr = "input"
 
 
 class Fun(Quantity):
-    typestr = 'auxfn'
+    typestr = "auxfn"
 
     def __init__(self, spec, signature, name="", domain=None, specType=None):
         if not isinstance(signature, _seq_types):
@@ -2775,27 +3047,29 @@ class Fun(Quantity):
         for s in signature:
             # signature may be empty, for function call fn()
             sigstrs.append(str(s))
-            assert isNameToken(str(s)), "signature symbol %s is invalid"%s
+            assert isNameToken(str(s)), "signature symbol %s is invalid" % s
         self.signature = sigstrs
         Quantity.__init__(self, spec, name, domain, specType)
         self.freeSymbols = remain(self.freeSymbols, self.signature)
-##        if remain(self.signature, self.spec.parser.tokenized) != []:
-##            raise ValueError("All signature arguments were not used in function definition")
+        ##        if remain(self.signature, self.spec.parser.tokenized) != []:
+        ##            raise ValueError("All signature arguments were not used in function definition")
         if self.spec.isDefined():
             protected_auxnamesDB.addAuxFn(self.name, self.spec.parser)
 
-#    def bindSpec(self, spec):
-#        Quantity.bindSpec(self, spec)
-#        protected_auxnamesDB.addAuxFn(self.name, self.spec.parser,
-#                                      overwrite=True)
+    #    def bindSpec(self, spec):
+    #        Quantity.bindSpec(self, spec)
+    #        protected_auxnamesDB.addAuxFn(self.name, self.spec.parser,
+    #                                      overwrite=True)
 
     def __call__(self, *args):
         lensig = len(self.signature)
         if lensig != len(args):
             raise ValueError("Invalid number of arguments for auxiliary function")
-        argstr = ", ".join(map(str,args))
-        if self.spec.specStr == '':
-            return QuantSpec("__result__", self.name+'('+argstr+')', specType=self.specType)
+        argstr = ", ".join(map(str, args))
+        if self.spec.specStr == "":
+            return QuantSpec(
+                "__result__", self.name + "(" + argstr + ")", specType=self.specType
+            )
         else:
             # avoid name clashes for free names and bound arg names during substitution
             argNameMapInv = {}
@@ -2809,31 +3083,39 @@ class Fun(Quantity):
                             check_names = [args[i].subjectToken]
                     else:
                         check_names = args[i].freeSymbols
-                    #check_names = args[i].freeSymbols
+                    # check_names = args[i].freeSymbols
                     isection = intersect(check_names, self.signature)
                     for name in isection:
                         # dummy arg name
-                        newname = "__"+name+"__"
-                        while newname in list(argNameMapInv.keys()) + \
-                                self.signature+self.freeSymbols:
+                        newname = "__" + name + "__"
+                        while (
+                            newname
+                            in list(argNameMapInv.keys())
+                            + self.signature
+                            + self.freeSymbols
+                        ):
                             # ensure unique name
                             newname += "_"
                         argNameMapInv[newname] = name
-                        args[i].mapNames({name:newname})
+                        args[i].mapNames({name: newname})
                 elif isinstance(args[i], str):
                     qtemp = QuantSpec("__arg__", args[i])
                     isection = intersect(qtemp.freeSymbols, self.signature)
                     for name in isection:
                         # dummy arg name
-                        newname = "__"+name+"__"
-                        while newname in list(argNameMapInv.keys()) + \
-                                self.signature+self.freeSymbols:
+                        newname = "__" + name + "__"
+                        while (
+                            newname
+                            in list(argNameMapInv.keys())
+                            + self.signature
+                            + self.freeSymbols
+                        ):
                             # ensure unique name
                             newname += "_"
                         argNameMapInv[newname] = name
-                        qtemp.mapNames({name:newname})
+                        qtemp.mapNames({name: newname})
                     args[i] = str(qtemp)
-            res = self.spec._eval(1, **dict(zip(self.signature,args)))
+            res = self.spec._eval(1, **dict(zip(self.signature, args)))
             res.mapNames(argNameMapInv)
             return res
 
@@ -2842,8 +3124,10 @@ class Fun(Quantity):
 ### Finish up overrides for inbuilt math names -> TitleCase symbolic versions
 
 # assign math constants to QuantSpecs that hold their names
-for c in remain(allmathnames,funcnames):
-    six.exec_(str(c).title() + " = QuantSpec('"+str(c)+"', '', includeProtected=False)")
+for c in remain(allmathnames, funcnames):
+    six.exec_(
+        str(c).title() + " = QuantSpec('" + str(c) + "', '', includeProtected=False)"
+    )
     math_globals[str(c).title()] = eval(str(c).title())
 
 # references to builtin aux functions or macros require temp defs of those
@@ -2857,9 +3141,9 @@ for fname in builtinFnSigInfo.keys():
     argstr = ""
     # add signature
     for i in range(builtinFnSigInfo[fname]):
-        argstr += "'arg"+str(i)+"',"
-    funcstr = "Fun('', [%s], '%s')"%(argstr,fname+"_")
-    local_fndef[fname+"_"] = eval(funcstr)
+        argstr += "'arg" + str(i) + "',"
+    funcstr = "Fun('', [%s], '%s')" % (argstr, fname + "_")
+    local_fndef[fname + "_"] = eval(funcstr)
 
 
 # --------------------------------------------------------------------------
@@ -2880,54 +3164,74 @@ for fname in builtinFnSigInfo.keys():
 ##    f.close()
 
 
-def getlftrtD(t,a):
-    lft=t[1]
-    rt=t[3:]
-    if len(rt)>1:
-        rt=[t[0]]+rt
-        drt=DiffStr(rt,a)
-        if drt[0] not in ['NUMBER']:
-            drt=['atom',['LPAR','('],drt,['RPAR',')']]
+def getlftrtD(t, a):
+    lft = t[1]
+    rt = t[3:]
+    if len(rt) > 1:
+        rt = [t[0]] + rt
+        drt = DiffStr(rt, a)
+        if drt[0] not in ["NUMBER"]:
+            drt = ["atom", ["LPAR", "("], drt, ["RPAR", ")"]]
     else:
-        rt=rt[0]
-        drt=DiffStr(rt,a)
-    dlft=DiffStr(lft,a)
-    return lft,dlft,rt,drt
+        rt = rt[0]
+        drt = DiffStr(rt, a)
+    dlft = DiffStr(lft, a)
+    return lft, dlft, rt, drt
 
 
-def dofun(l,r):
-    retr=ensurebare(r)
-    if l=='log':
-        if r in ONES: return '0'
-        if r=='e': return '1'
-    if l=='log10':
-        if r in ONES: return '0'
-        if r in TENS: return '1'
-    if l=='log_0': return dodiv('1',r)
-    if l=='log10_0': return dodiv(dofun('log','10'),retr)
-    if l=='ln_0': return dodiv('1',r)
-    if l=='sin_0': return dofun('cos',retr)
-    if l=='sinh_0': return dofun('cosh',retr)
-    if l=='cosh_0': return dofun('sinh',retr)
-    if l=='tanh_0': return dodiv('1',dopower(dofun('cosh',retr),'2'))
-    if l=='coth_0': return dodiv('-1',dopower(dofun('sinh',retr),'2'))
-    if l=='asin_0': return dodiv('1',dofun('sqrt',dosub('1',dopower(r,'2'))))
-    if l=='acos_0': return dodiv('-1',dofun('sqrt',dosub('1',dopower(r,'2'))))
-    if l=='atan_0': return dodiv('1',doadd('1',dopower(r,'2')))
-    if l=='acot_0': return dodiv('-1',doadd('1',dopower(r,'2')))
-    if l=='tan_0': return dodiv('1',dopower(dofun('cos',retr),'2'))
-    if l=='cot_0': return doneg(dodiv('1',dopower(dofun('sin',retr),'2')))
-    if l=='cos_0': return doneg(dofun('sin',retr))
-    if l=='exp_0': return dofun('exp',retr)
-    if l=='sqrt_0': return dodiv('1',domul('2',dofun('sqrt',retr)))
-    return '%s(%s)'%(l,retr)
-
-
+def dofun(l, r):
+    retr = ensurebare(r)
+    if l == "log":
+        if r in ONES:
+            return "0"
+        if r == "e":
+            return "1"
+    if l == "log10":
+        if r in ONES:
+            return "0"
+        if r in TENS:
+            return "1"
+    if l == "log_0":
+        return dodiv("1", r)
+    if l == "log10_0":
+        return dodiv(dofun("log", "10"), retr)
+    if l == "ln_0":
+        return dodiv("1", r)
+    if l == "sin_0":
+        return dofun("cos", retr)
+    if l == "sinh_0":
+        return dofun("cosh", retr)
+    if l == "cosh_0":
+        return dofun("sinh", retr)
+    if l == "tanh_0":
+        return dodiv("1", dopower(dofun("cosh", retr), "2"))
+    if l == "coth_0":
+        return dodiv("-1", dopower(dofun("sinh", retr), "2"))
+    if l == "asin_0":
+        return dodiv("1", dofun("sqrt", dosub("1", dopower(r, "2"))))
+    if l == "acos_0":
+        return dodiv("-1", dofun("sqrt", dosub("1", dopower(r, "2"))))
+    if l == "atan_0":
+        return dodiv("1", doadd("1", dopower(r, "2")))
+    if l == "acot_0":
+        return dodiv("-1", doadd("1", dopower(r, "2")))
+    if l == "tan_0":
+        return dodiv("1", dopower(dofun("cos", retr), "2"))
+    if l == "cot_0":
+        return doneg(dodiv("1", dopower(dofun("sin", retr), "2")))
+    if l == "cos_0":
+        return doneg(dofun("sin", retr))
+    if l == "exp_0":
+        return dofun("exp", retr)
+    if l == "sqrt_0":
+        return dodiv("1", domul("2", dofun("sqrt", retr)))
+    return "%s(%s)" % (l, retr)
 
 
 # --------------------------------------------------------------------------
 
 qtypes = (Quantity, QuantSpec)
+
 
 def Diff(t, a):
     """Symbolic differentiation of argument t with respect to variables in a.
@@ -2956,7 +3260,7 @@ def Diff(t, a):
             except AttributeError:
                 t_arg = str(qt)
             else:
-                if t_arg == '':
+                if t_arg == "":
                     # use symbol name
                     t_arg = str(qt)
     elif isinstance(t, str):
@@ -2964,11 +3268,11 @@ def Diff(t, a):
         if t_strip[0] == "[" and t_strip[-1] == "]":
             return Diff(splitargs(t_strip[1:-1]), a)
         else:
-            qt = QuantSpec('qt', t, treatMultiRefs=False)
+            qt = QuantSpec("qt", t, treatMultiRefs=False)
             qt.mapNames(feval_map_symb)
             t_arg = str(qt)
     elif compareClassAndBases(t, (list, tuple)):
-        ostr = "[" + ",".join([str(Diff(o,a)) for o in t]) + "]"
+        ostr = "[" + ",".join([str(Diff(o, a)) for o in t]) + "]"
         return QuantSpec("__result__", ostr)
     else:
         print("Found:%s type (%s)" % (t, type(t)))
@@ -2977,7 +3281,7 @@ def Diff(t, a):
     if compareClassAndBases(a, qtypes):
         a_arg = str(a)
     elif isinstance(a, list):
-        ostr = "[" + ",".join([str(Diff(t,o)) for o in a]) + "]"
+        ostr = "[" + ",".join([str(Diff(t, o)) for o in a]) + "]"
         return QuantSpec("__result__", ostr)
     elif isinstance(a, str):
         a_arg = a
@@ -2992,119 +3296,148 @@ def Diff(t, a):
         res.simplify()
         return res
     except:
-        print("Tried to diff '%s' w.r.t. '%s'"%(t_arg,a_arg))
+        print("Tried to diff '%s' w.r.t. '%s'" % (t_arg, a_arg))
         raise
 
 
-def DiffStr(t, a='x'):
+def DiffStr(t, a="x"):
     """Diff for strings only.
 
     This is Pearu's original Diff function renamed to DiffStr."""
 
     if isinstance(a, list):
-##        s= ''.join([t, '__derivWRT__', str(a)])
-##        r=__Diff_saved.get(s, None)
-##        if r is not None:
-##            return r
+        ##        s= ''.join([t, '__derivWRT__', str(a)])
+        ##        r=__Diff_saved.get(s, None)
+        ##        if r is not None:
+        ##            return r
 
         o = string2ast(t)
         for aa in a:
-            o = DiffStr(o,aa)
-##        res=ast2string(o)
-##        __Diff_saved[s] = res
-##        return res
+            o = DiffStr(o, aa)
+        ##        res=ast2string(o)
+        ##        __Diff_saved[s] = res
+        ##        return res
         return ast2string(o)
     elif isinstance(t, str):
-        return ast2string(DiffStr(string2ast(t),a))
-##        s= ''.join([t, '__derivWRT__', str(a)])
-##        r=__Diff_saved.get(s, None)
-##        if r is not None:
-##            return r
-##
-##        res=ast2string(DiffStr(string2ast(t),a))
-##        __Diff_saved[s] = res
-##        return res
+        return ast2string(DiffStr(string2ast(t), a))
+    ##        s= ''.join([t, '__derivWRT__', str(a)])
+    ##        r=__Diff_saved.get(s, None)
+    ##        if r is not None:
+    ##            return r
+    ##
+    ##        res=ast2string(DiffStr(string2ast(t),a))
+    ##        __Diff_saved[s] = res
+    ##        return res
 
     if isinstance(t, list) and len(t) == 1:
-        return DiffStr(t[0],a)
-    if t[0]=='NUMBER': return [t[0],'0']
-    if t[0]=='NAME':
-        if t[1]==a: return ['NUMBER','1']
-        return ['NUMBER','0']
-    if t[0]=='factor':
-        st=ast2string(t)
-        return simplify(string2ast(doneg(ast2string(DiffStr(string2ast(st[1:]),a)))))
-    if t[0]=='arith_expr':
-        o='0'
-        for i in range(1,len(t),2):
-            if t[i-1][1]=='-':
-                o=doadd(o,doneg(ast2string(DiffStr(t[i],a))))
+        return DiffStr(t[0], a)
+    if t[0] == "NUMBER":
+        return [t[0], "0"]
+    if t[0] == "NAME":
+        if t[1] == a:
+            return ["NUMBER", "1"]
+        return ["NUMBER", "0"]
+    if t[0] == "factor":
+        st = ast2string(t)
+        return simplify(string2ast(doneg(ast2string(DiffStr(string2ast(st[1:]), a)))))
+    if t[0] == "arith_expr":
+        o = "0"
+        for i in range(1, len(t), 2):
+            if t[i - 1][1] == "-":
+                o = doadd(o, doneg(ast2string(DiffStr(t[i], a))))
             else:
-                o=doadd(o,ast2string(DiffStr(t[i],a)))
+                o = doadd(o, ast2string(DiffStr(t[i], a)))
         return simplify(string2ast(o))
-    if t[0]=='term':
+    if t[0] == "term":
         ttemp = ensureparen_div(t)
-        lft,dlft,rt,drt=[ast2string(simplify(x)) for x in getlftrtD(ttemp,a)]
-        if ttemp[2][0]=='STAR':
-            return simplify(string2ast(doadd(domul(dlft,rt),domul(lft,drt))))
-        if ttemp[2][0]=='SLASH':
-            return simplify(string2ast(dosub(dodiv(dlft,rt),
-                                    domul(domul(lft,drt),dopower(rt,'-2')))))
-    if t[0]=='xor_expr' and t[2]=='CIRCUMFLEX': # covers alternative power syntax
+        lft, dlft, rt, drt = [ast2string(simplify(x)) for x in getlftrtD(ttemp, a)]
+        if ttemp[2][0] == "STAR":
+            return simplify(string2ast(doadd(domul(dlft, rt), domul(lft, drt))))
+        if ttemp[2][0] == "SLASH":
+            return simplify(
+                string2ast(
+                    dosub(dodiv(dlft, rt), domul(domul(lft, drt), dopower(rt, "-2")))
+                )
+            )
+    if t[0] == "xor_expr" and t[2] == "CIRCUMFLEX":  # covers alternative power syntax
         alt = copy(t)
-        alt[0] = 'power'; alt[2]=='DOUBLESTAR'
-        return simplify(toCircumflexSyntax(string2ast(DiffStr(alt,a))))
-    if t[0]=='power':
+        alt[0] = "power"
+        alt[2] == "DOUBLESTAR"
+        return simplify(toCircumflexSyntax(string2ast(DiffStr(alt, a))))
+    if t[0] == "power":
         # covers math functions like sin, cos, and log10 as well!
-        if t[2][0]=='trailer':
-            if len(t)>3:
+        if t[2][0] == "trailer":
+            if len(t) > 3:
                 term1 = simplify(t[:3])
-                if term1[0] in ['power', 'NUMBER', 'NAME']:
-                    formatstr='%s'
+                if term1[0] in ["power", "NUMBER", "NAME"]:
+                    formatstr = "%s"
                 else:
-                    formatstr='(%s)'
-                return simplify(string2ast(DiffStr([t[0],
-                                    string2ast(formatstr%ast2string(term1)),t[3:]],a)))
-            elif len(t)==3 and t[1][1]=='pow':
+                    formatstr = "(%s)"
+                return simplify(
+                    string2ast(
+                        DiffStr(
+                            [t[0], string2ast(formatstr % ast2string(term1)), t[3:]], a
+                        )
+                    )
+                )
+            elif len(t) == 3 and t[1][1] == "pow":
                 # 'pow' syntax case
-                return simplify(toPowSyntax(string2ast(DiffStr(mapPowStr(t),a))))
+                return simplify(toPowSyntax(string2ast(DiffStr(mapPowStr(t), a))))
             # else ignore and carry on
-        ts=[];o=[];dts=[]
+        ts = []
+        o = []
+        dts = []
         for i in t[1:]:
-            if i[0]=='DOUBLESTAR':
-                if len(o)==1: o=o[0]
-                ts.append(o);
-                dts.append(DiffStr(o,a))
-                o=[]
-            else: o.append(i)
-        if len(o)==1: o=o[0]
+            if i[0] == "DOUBLESTAR":
+                if len(o) == 1:
+                    o = o[0]
+                ts.append(o)
+                dts.append(DiffStr(o, a))
+                o = []
+            else:
+                o.append(i)
+        if len(o) == 1:
+            o = o[0]
         ts.append(o)
-        dts.append(DiffStr(o,a))
-        if t[2][0]=='DOUBLESTAR':
-            st,lft,dlft,rt,drt=[ast2string(simplify(x)) for x in [t,ts[0],dts[0],ts[1],dts[1]]]
-            rt1=trysimple('%s-1'%rt)
-            if drt=='0':
-                return toPowSyntax(string2ast(domul(domul(rt,dlft),dopower(lft,rt1))))
-            return toPowSyntax(string2ast(domul(doadd(domul(dofun('log',lft),drt),
-                                          dodiv(domul(dlft,rt),lft)),st)))
-        if t[2][0]=='trailer':
+        dts.append(DiffStr(o, a))
+        if t[2][0] == "DOUBLESTAR":
+            st, lft, dlft, rt, drt = [
+                ast2string(simplify(x)) for x in [t, ts[0], dts[0], ts[1], dts[1]]
+            ]
+            rt1 = trysimple("%s-1" % rt)
+            if drt == "0":
+                return toPowSyntax(
+                    string2ast(domul(domul(rt, dlft), dopower(lft, rt1)))
+                )
+            return toPowSyntax(
+                string2ast(
+                    domul(
+                        doadd(
+                            domul(dofun("log", lft), drt), dodiv(domul(dlft, rt), lft)
+                        ),
+                        st,
+                    )
+                )
+            )
+        if t[2][0] == "trailer":
             return simplify(toPowSyntax(dts[0]))
-    if t[0] in ['arglist','testlist']:
-        o=[]
+    if t[0] in ["arglist", "testlist"]:
+        o = []
         for i in t[1::2]:
-            o.append(DiffStr(ast2string(i),a))
-        return string2ast(','.join(o))
-    if t[0]=='atom':
-##        if t[1][0]=='LPAR' and t[-1][0]=='RPAR':
-##            return simplify(DiffStr(t[2:-1],a))
-##        else:
-        return string2ast(ensureparen(ast2string(DiffStr(t[2:-1],a))))
-    if t[1][0]=='trailer': # t=[[NAME,f],[trailer,[(],[ll],[)]]]
-        aa=t[1][2]
-        ll=splitargs(ast2string(DiffStr(aa,a)))
-        ii=0;o='0'
+            o.append(DiffStr(ast2string(i), a))
+        return string2ast(",".join(o))
+    if t[0] == "atom":
+        ##        if t[1][0]=='LPAR' and t[-1][0]=='RPAR':
+        ##            return simplify(DiffStr(t[2:-1],a))
+        ##        else:
+        return string2ast(ensureparen(ast2string(DiffStr(t[2:-1], a))))
+    if t[1][0] == "trailer":  # t=[[NAME,f],[trailer,[(],[ll],[)]]]
+        aa = t[1][2]
+        ll = splitargs(ast2string(DiffStr(aa, a)))
+        ii = 0
+        o = "0"
         for i in ll:
-            o=doadd(o,domul(i,dofun(t[0][1]+'_'+repr(ii),ast2string(aa))))
-            ii=ii+1
+            o = doadd(o, domul(i, dofun(t[0][1] + "_" + repr(ii), ast2string(aa))))
+            ii = ii + 1
         return simplify(string2ast(o))
     return t

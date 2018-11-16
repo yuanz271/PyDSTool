@@ -9,11 +9,11 @@ import os
 import sys
 
 
-__all__ = ['RedirectStdout', 'RedirectStderr']
+__all__ = ["RedirectStdout", "RedirectStderr"]
 
 
 @contextlib.contextmanager
-def _stdchannel_redirected(stdchannel, dest_filename, mode='w'):
+def _stdchannel_redirected(stdchannel, dest_filename, mode="w"):
     """
     A context manager to temporarily redirect stdout or stderr
 
@@ -42,4 +42,4 @@ def _stdchannel_redirected(stdchannel, dest_filename, mode='w'):
 
 RedirectStdout = functools.partial(_stdchannel_redirected, sys.stdout)
 RedirectStderr = functools.partial(_stdchannel_redirected, sys.stderr)
-RedirectNoOp = functools.partial(_stdchannel_redirected, None, '')
+RedirectNoOp = functools.partial(_stdchannel_redirected, None, "")

@@ -12,13 +12,41 @@ from .Interval import *
 from .Points import *
 from .utils import *
 from .common import *
-from .common import _num_types
+from .common import (
+    _num_types,
+    _num_equivtype,
+    _float_types,
+    _real_types,
+    _int_types,
+    _seq_types,
+    _num_type2name,
+    _num_name2type,
+    _num_name2equivtypes,
+    _all_float,
+    _all_int,
+    _all_complex,
+)
 from .parseUtils import *
 from .errors import *
 
 # Other imports
-from numpy import array, arange, float64, int32, concatenate, zeros, shape, \
-     sometrue, alltrue, any, all, ndarray, asarray, Inf, unique
+from numpy import (
+    array,
+    arange,
+    float64,
+    int32,
+    concatenate,
+    zeros,
+    shape,
+    sometrue,
+    alltrue,
+    any,
+    all,
+    ndarray,
+    asarray,
+    Inf,
+    unique,
+)
 from scipy.optimize import bisect, newton
 from numpy.linalg import norm
 import math
@@ -29,15 +57,30 @@ import sys
 
 ## Exports
 
-__all__ = ['Trajectory', 'HybridTrajectory', 'numeric_to_traj',
-           'pointset_to_traj', 'convert_ptlabel_events', 'findApproxPeriod']
+__all__ = [
+    "Trajectory",
+    "HybridTrajectory",
+    "numeric_to_traj",
+    "pointset_to_traj",
+    "convert_ptlabel_events",
+    "findApproxPeriod",
+]
 
 # -------------------------------------------------------------
 
 
-def numeric_to_traj(vals, trajname, coordnames, indepvar=None, indepvarname='t',
-                    indepdomain=None, all_types_float=True, discrete=True,
-                    event_times=None, event_vals=None):
+def numeric_to_traj(
+    vals,
+    trajname,
+    coordnames,
+    indepvar=None,
+    indepvarname="t",
+    indepdomain=None,
+    all_types_float=True,
+    discrete=True,
+    event_times=None,
+    event_vals=None,
+):
     """Utility function to convert one or more numeric type to a Trajectory.
     Option to make the trajectory parameterized or not, by pasing an indepvar
     value.
@@ -51,15 +94,22 @@ def numeric_to_traj(vals, trajname, coordnames, indepvar=None, indepvarname='t',
     If event_times and event_vals dictionaries (default None) are given, this
     will place them in the resulting Trajectory.
     """
-    vars = numeric_to_vars(vals, coordnames, indepvar, indepvarname,
-                           indepdomain, all_types_float, discrete)
+    vars = numeric_to_vars(
+        vals, coordnames, indepvar, indepvarname, indepdomain, all_types_float, discrete
+    )
     if event_times is not None:
-        return Trajectory(trajname, list(vars.values()),
-                      parameterized=indepvar is not None,
-                      eventTimes=event_times, events=event_vals)
+        return Trajectory(
+            trajname,
+            list(vars.values()),
+            parameterized=indepvar is not None,
+            eventTimes=event_times,
+            events=event_vals,
+        )
     else:
-        return Trajectory(trajname, list(vars.values()),
-                      parameterized=indepvar is not None)
+        return Trajectory(
+            trajname, list(vars.values()), parameterized=indepvar is not None
+        )
+
 
 def convert_ptlabel_events(pts, return_vals_dict=False):
     """Creates an eventTimes-like dictionary from a pointset's labels.
@@ -70,14 +120,14 @@ def convert_ptlabel_events(pts, return_vals_dict=False):
     """
     ev_labels = []
     for l in pts.labels.getLabels():
-        if 'Event:' in l:
+        if "Event:" in l:
             ev_labels.append(l[6:])
     event_times = {}
     event_vals = {}
     for l in ev_labels:
         ts = []
         ixlist = []
-        ix_dict = pts.labels.by_label['Event:'+l]
+        ix_dict = pts.labels.by_label["Event:" + l]
         # don't use tdict in labels in case indepvararray has been re-scaled
         for ix in ix_dict.keys():
             ts.append(pts.indepvararray[ix])
@@ -85,8 +135,7 @@ def convert_ptlabel_events(pts, return_vals_dict=False):
         ts.sort()
         if return_vals_dict:
             ixlist.sort()
-            event_vals[l] = pointsToPointset([pts[ix] for ix in ixlist],
-                                             't', ts)
+            event_vals[l] = pointsToPointset([pts[ix] for ix in ixlist], "t", ts)
         event_times[l] = ts
     if return_vals_dict:
         return event_times, event_vals
@@ -112,12 +161,25 @@ def pointset_to_traj(pts, events=None):
     else:
         ev_times = ev_vals = None
     if isparameterized(pts):
-        return numeric_to_traj(pts.coordarray, pts.name, pts.coordnames, pts.indepvararray,
-                               pts.indepvarname, discrete=False,
-                               event_times=ev_times, event_vals=ev_vals)
+        return numeric_to_traj(
+            pts.coordarray,
+            pts.name,
+            pts.coordnames,
+            pts.indepvararray,
+            pts.indepvarname,
+            discrete=False,
+            event_times=ev_times,
+            event_vals=ev_vals,
+        )
     else:
-        return numeric_to_traj(pts.coordarray, pts.name, pts.coordnames, discrete=False,
-                               event_times=ev_times, event_vals=ev_vals)
+        return numeric_to_traj(
+            pts.coordarray,
+            pts.name,
+            pts.coordnames,
+            discrete=False,
+            event_times=ev_times,
+            event_vals=ev_vals,
+        )
 
 
 class Trajectory(object):
@@ -128,12 +190,24 @@ class Trajectory(object):
     generators, e.g. ImplicitFnGen.
     """
 
-    def __init__(self, name, vals, coordnames=None, modelNames=None,
-                 timeInterval=None, modelEventStructs=None,
-                 eventTimes=None, events=None,
-                 FScompatibleNames=None, FScompatibleNamesInv=None,
-                 abseps=None, globalt0=0, checklevel=0, norm=2,
-                 parameterized=True):
+    def __init__(
+        self,
+        name,
+        vals,
+        coordnames=None,
+        modelNames=None,
+        timeInterval=None,
+        modelEventStructs=None,
+        eventTimes=None,
+        events=None,
+        FScompatibleNames=None,
+        FScompatibleNamesInv=None,
+        abseps=None,
+        globalt0=0,
+        checklevel=0,
+        norm=2,
+        parameterized=True,
+    ):
         if isinstance(name, str):
             self.name = name
         else:
@@ -203,28 +277,40 @@ class Trajectory(object):
             if isinstance(indepdomain, ndarray):
                 if v.trajirange is None:
                     if all(v.indepdomain != indepdomain):
-                        raise ValueError("Some variables in varlist argument "
-                                "have different independent variable domains")
+                        raise ValueError(
+                            "Some variables in varlist argument "
+                            "have different independent variable domains"
+                        )
                 else:
                     if all(v.trajirange != indepdomain):
-                        raise ValueError("Some variables in varlist argument "
-                                "have different independent variable domains")
+                        raise ValueError(
+                            "Some variables in varlist argument "
+                            "have different independent variable domains"
+                        )
             else:
                 if v.trajirange is None:
                     if v.indepdomain != indepdomain:
-                        raise ValueError("Some variables in varlist argument "
-                                "have different independent variable domains")
+                        raise ValueError(
+                            "Some variables in varlist argument "
+                            "have different independent variable domains"
+                        )
                 else:
                     if v.trajirange != indepdomain:
-                        raise ValueError("Some variables in varlist argument "
-                                "have different independent variable domains")
+                        raise ValueError(
+                            "Some variables in varlist argument "
+                            "have different independent variable domains"
+                        )
             if v.indepvarname != indepvarname:
-                raise ValueError("Some variables in varlist "
-                  "argument have different independent variable names")
+                raise ValueError(
+                    "Some variables in varlist "
+                    "argument have different independent variable names"
+                )
             if v.indepvartype != indepvartype:
-                raise ValueError("Some variables in varlist "
-                  "argument have different independent "
-                  "variable types")
+                raise ValueError(
+                    "Some variables in varlist "
+                    "argument have different independent "
+                    "variable types"
+                )
             if v.trajdrange is None:
                 self.depdomain[v.coordname] = v.depdomain
             else:
@@ -237,13 +323,14 @@ class Trajectory(object):
         self.variables = {}
         for v in varlist:
             assert isinstance(v, Variable)
-            assert v.defined, ("Variables must be defined before building "
-                               "a Trajectory object")
+            assert v.defined, (
+                "Variables must be defined before building " "a Trajectory object"
+            )
             self.variables[v.name] = v
         self.dimension = len(varlist)
         self._name_ix_map = invertMap(self.coordnames)
         self.globalt0 = globalt0
-        self.checklevel = checklevel   # unused
+        self.checklevel = checklevel  # unused
         # order for norm of points within trajectory
         self._normord = norm
         # funcspec compatible names especially used when part of a large
@@ -294,8 +381,9 @@ class Trajectory(object):
 
     def delete_variables(self, coords):
         """coords is a list of coordinate names to remove"""
-        assert alltrue([c in self.variables for c in coords]), \
-               "Variable name %s doesn't exist"%c
+        assert alltrue(
+            [c in self.variables for c in coords]
+        ), "Variable name doesn't exist"
         assert len(coords) < self.dimension, "Cannot delete every variable!"
         self.coordnames = remain(self.coordnames, coords)
         self._name_ix_map = invertMap(self.coordnames)
@@ -308,11 +396,12 @@ class Trajectory(object):
         """themap is a symbolMapClass mapping object for remapping coordinate names
         """
         new_coordnames = array(themap(self.coordnames)).tolist()
-        assert isUniqueSeq(new_coordnames), 'Coordinate names must be unique'
+        assert isUniqueSeq(new_coordnames), "Coordinate names must be unique"
         new_coordnames.sort()
         if self._parameterized:
-            assert self.indepvarname not in new_coordnames, \
-                   'Coordinate names must not overlap with independent variable'
+            assert (
+                self.indepvarname not in new_coordnames
+            ), "Coordinate names must not overlap with independent variable"
         for c in self.coordnames:
             self.variables[c].name = themap(c)
         self.variables = themap(self.variables)
@@ -321,7 +410,6 @@ class Trajectory(object):
         self._FScompatibleNamesInv = self._FScompatibleNames.inverse()
         self.coordnames = new_coordnames
         self._name_ix_map = invertMap(self.coordnames)
-
 
     def truncate_to_idx(self, idx):
         """Truncate trajectory according to a last coordinate specified by idx
@@ -335,8 +423,10 @@ class Trajectory(object):
                 if t_vals is None:
                     t_vals = vmesh[0]
                     if idx > len(t_vals):
-                        raise ValueError("Index out of range for truncation of variable"
-                                 " %s in trajectory %s"%(vname, self.name))
+                        raise ValueError(
+                            "Index out of range for truncation of variable"
+                            " %s in trajectory %s" % (vname, self.name)
+                        )
                 v.truncate_to_idx(idx)
                 # adjust self.depdomain if it has changed
                 if v.trajdrange is None:
@@ -353,14 +443,14 @@ class Trajectory(object):
     def truncate_to_indepvar(self, t):
         """Truncate trajectory according to an independent variable value given
         by t argument, provided trajectory is defined as parameterized."""
-        #assert self._parameterized, "Only call parameterized trajectories"
-        #if self.globalt0 > t:
+        # assert self._parameterized, "Only call parameterized trajectories"
+        # if self.globalt0 > t:
         #    self.globalt0 = t
         raise NotImplementedError("This feature is not yet implemented")
 
-
-    def __call__(self, t, coords=None, checklevel=None,
-                 asGlobalTime=False, asmap=False):
+    def __call__(
+        self, t, coords=None, checklevel=None, asGlobalTime=False, asmap=False
+    ):
         """Evaluate a parameterized trajectory at given independent
         variable value(s), interpreted as local times by default, unless
         asGlobalTime==True (default is False, unlike with sample method).
@@ -390,8 +480,7 @@ class Trajectory(object):
                     print("Valid coordinate names:%r" % self.coordnames)
                     raise ValueError("Invalid coordinate names passed")
             elif any([isinstance(c, str) for c in coords]):
-                raise TypeError("Cannot mix string and numeric values in "
-                                  "coords")
+                raise TypeError("Cannot mix string and numeric values in " "coords")
             else:
                 # numeric list assumed
                 coordlist = [v for v in self.coordnames if v in self._name_ix_map]
@@ -419,8 +508,10 @@ class Trajectory(object):
                 # variable object will accept any sequence type
                 indepvals = t
             try:
-                vals = [v(indepvals, checklevel) \
-                        for v in [self.variables[vn] for vn in coordlist]]
+                vals = [
+                    v(indepvals, checklevel)
+                    for v in [self.variables[vn] for vn in coordlist]
+                ]
             except:
                 if checklevel > 1:
                     print("\nProblem calling with coords: %r" % coordlist)
@@ -432,9 +523,9 @@ class Trajectory(object):
                     except AttributeError:
                         # domains may be discrete
                         print("Discrete variable domain and/or range")
-#                print self.variables[coordlist[0]].initialconditions
+                #                print self.variables[coordlist[0]].initialconditions
                 raise
-#                raise ValueError("Problem calling at these independent variable values")
+            #                raise ValueError("Problem calling at these independent variable values")
             if asmap:
                 if asGlobalTime:
                     vals.append(array(t))
@@ -444,26 +535,32 @@ class Trajectory(object):
                     # (internally-generated local t vals)
                     vals.append(array(t) + self.globalt0)
                 coordlist.append(self.indepvarname)
-##            if len(coordlist) == 1:
-##                return array(vals[0], self.coordtype)
-##            else:
-            #if asGlobalTime:
+            ##            if len(coordlist) == 1:
+            ##                return array(vals[0], self.coordtype)
+            ##            else:
+            # if asGlobalTime:
             #    offset = 0
-            #else:
+            # else:
             offset = self.globalt0
             return self._FScompatibleNamesInv(
-               Pointset({'coordarray': vals,
-                         'coordnames': coordlist,
-                         'coordtype': self.coordtype,
-                         'indepvararray': array(indepvals)+offset,
-                         'norm': self._normord,
-                         'name': self.name + "_sample"}))
+                Pointset(
+                    {
+                        "coordarray": vals,
+                        "coordnames": coordlist,
+                        "coordtype": self.coordtype,
+                        "indepvararray": array(indepvals) + offset,
+                        "norm": self._normord,
+                        "name": self.name + "_sample",
+                    }
+                )
+            )
         else:
             if asGlobalTime and not asmap:
                 t = t - self.globalt0
             try:
-                varvals = [v(t, checklevel) for v in \
-                                 [self.variables[vn] for vn in coordlist]]
+                varvals = [
+                    v(t, checklevel) for v in [self.variables[vn] for vn in coordlist]
+                ]
             except:
                 if checklevel > 1:
                     print("\nProblem calling with coords: %r" % coordlist)
@@ -484,21 +581,25 @@ class Trajectory(object):
                     # return t val in global time, so have to
                     # add globalt0 to the internally-generated local t val
                     varvals.append(t + self.globalt0)
-##            if len(coordlist) == 1:
-##                # covers asmap == False case
-##                return self.variables[coordlist[0]](t, checklevel)
-##            else:
-            #if asGlobalTime:
+            ##            if len(coordlist) == 1:
+            ##                # covers asmap == False case
+            ##                return self.variables[coordlist[0]](t, checklevel)
+            ##            else:
+            # if asGlobalTime:
             #    offset = 0
-            #else:
+            # else:
             offset = self.globalt0
             return self._FScompatibleNamesInv(
-                Point({'coordarray': varvals,
-                       'coordnames': coordlist,
-                       'coordtype': self.coordtype,
-                       'indepvararray': array(t)+offset,
-                       'norm': self._normord}))
-
+                Point(
+                    {
+                        "coordarray": varvals,
+                        "coordnames": coordlist,
+                        "coordtype": self.coordtype,
+                        "indepvararray": array(t) + offset,
+                        "norm": self._normord,
+                    }
+                )
+            )
 
     def underlyingMesh(self, coords=None, FScompat=True):
         """Return a dictionary of the underlying independent variables` meshes,
@@ -512,7 +613,7 @@ class Trajectory(object):
         if coords is None:
             coords = self.coordnames
         if not isinstance(coords, list):
-            raise TypeError('coords argument must be a list')
+            raise TypeError("coords argument must be a list")
         meshdict = {}
         if FScompat:
             cs = self._FScompatibleNames(coords)
@@ -525,9 +626,16 @@ class Trajectory(object):
         else:
             return meshdict
 
-
-    def sample(self, coords=None, dt=None, tlo=None, thi=None,
-                   doEvents=True, precise=False, asGlobalTime=True):
+    def sample(
+        self,
+        coords=None,
+        dt=None,
+        tlo=None,
+        thi=None,
+        doEvents=True,
+        precise=False,
+        asGlobalTime=True,
+    ):
         """Uniformly sample the named trajectory over range indicated.
         Returns a Pointset.
 
@@ -551,8 +659,9 @@ class Trajectory(object):
             coords_sorted = self.coordnames
         else:
             if not isinstance(coords, list):
-                assert isinstance(coords, str), \
-                       "coords must be a list of strings or a singleton string"
+                assert isinstance(
+                    coords, str
+                ), "coords must be a list of strings or a singleton string"
                 coords_sorted = [self._FScompatibleNames(coords)]
             else:
                 coords_sorted = self._FScompatibleNames(coords)
@@ -599,19 +708,20 @@ class Trajectory(object):
                 pass
             return res
         else:
-            assert tlo < thi, 't start point must be less than t endpoint'
-            if dt is not None and dt >= abs(thi-tlo):
+            assert tlo < thi, "t start point must be less than t endpoint"
+            if dt is not None and dt >= abs(thi - tlo):
                 if precise:
-                    print("dt = %f for interval [%f,%f]"%(dt,tlo,thi))
-                    raise ValueError('dt must be smaller than time interval')
+                    print("dt = %f for interval [%f,%f]" % (dt, tlo, thi))
+                    raise ValueError("dt must be smaller than time interval")
                 else:
-                    dt = (thi-tlo)/10.
+                    dt = (thi - tlo) / 10.0
         if precise:
             if dt is None:
-                raise ValueError("Must specify an explicit dt when precise flag"
-                                 " is set")
+                raise ValueError(
+                    "Must specify an explicit dt when precise flag" " is set"
+                )
             else:
-                tmesh = concatenate((arange(tlo, thi, dt),[thi]))
+                tmesh = concatenate((arange(tlo, thi, dt), [thi]))
                 loix = 0
                 hiix = len(tmesh)
                 meshes_ok = True
@@ -628,12 +738,12 @@ class Trajectory(object):
                     # explicitly checking that the arrays are the same
                     # is very slow -- just catch a resulting error later
             if meshes_ok:
-                loix_a = ( firstvar_tmesh >= tlo ).tolist()
+                loix_a = (firstvar_tmesh >= tlo).tolist()
                 try:
                     loix = loix_a.index(1)
                 except ValueError:
                     loix = 0
-                hiix_a = ( firstvar_tmesh > thi ).tolist()
+                hiix_a = (firstvar_tmesh > thi).tolist()
                 try:
                     hiix = hiix_a.index(1)
                 except ValueError:
@@ -647,19 +757,23 @@ class Trajectory(object):
                     tmesh = concatenate((arange(tlo, thi, dt), [thi]))
                     # get closest mesh indices corresponding to tmesh
                     # times for first var
-                    closest = makeSeqUnique(findClosestArray(firstvar_tmesh,
-                                                       tmesh, dt/2), True)
+                    closest = makeSeqUnique(
+                        findClosestArray(firstvar_tmesh, tmesh, dt / 2), True
+                    )
                     # filter any out-of-range tvals picked
-                    tmesh = array([t for t in firstvar_tmesh[closest] \
-                                   if t >= tlo and t <= thi])
+                    tmesh = array(
+                        [t for t in firstvar_tmesh[closest] if t >= tlo and t <= thi]
+                    )
 
         if meshes_ok:
             ix_range = arange(loix, hiix)
         else:
             if dt is None:
-                raise PyDSTool_ValueError("Underlying mesh of trajectory is not"
-                             " the same for all variables: dt must "
-                             "be specified in this case")
+                raise PyDSTool_ValueError(
+                    "Underlying mesh of trajectory is not"
+                    " the same for all variables: dt must "
+                    "be specified in this case"
+                )
             else:
                 # tmesh not created
                 precise = True
@@ -677,7 +791,6 @@ class Trajectory(object):
         else:
             tmesh_glob = tmesh
 
-
         # Add Pointset labels for events
         # Work in global time in case of loss of precision in small
         # time differences between time points and event points
@@ -685,10 +798,12 @@ class Trajectory(object):
         if doEvents:
             eventdata = self.getEventTimes(asGlobalTime=True)
             eventpts = self.getEvents(asGlobalTime=True)
-            evtlist = [(t, evname) for (t, evname) in \
-                       orderEventData(eventdata, bytime=True) \
-                       if t >= tmesh_glob[0] - self.indepdomain._abseps and \
-                          t <= tmesh_glob[-1] + self.indepdomain._abseps]
+            evtlist = [
+                (t, evname)
+                for (t, evname) in orderEventData(eventdata, bytime=True)
+                if t >= tmesh_glob[0] - self.indepdomain._abseps
+                and t <= tmesh_glob[-1] + self.indepdomain._abseps
+            ]
             ev_pts_list = []
             if evtlist != []:
                 ev_ts = [t for (t, evname) in evtlist]
@@ -696,10 +811,9 @@ class Trajectory(object):
                     # get each state point
                     tix = eventpts[evname].find(t)
                     ev_pts_list.append(eventpts[evname][tix])
-                tmesh_glob, ins_ixs, close_ix_dict = insertInOrder( \
-                                               tmesh_glob,
-                                               ev_ts, return_ixs=True,
-                                               abseps=self.indepdomain._abseps)
+                tmesh_glob, ins_ixs, close_ix_dict = insertInOrder(
+                    tmesh_glob, ev_ts, return_ixs=True, abseps=self.indepdomain._abseps
+                )
             else:
                 ins_ixs = []
             if len(ins_ixs) != len(evtlist):
@@ -723,8 +837,13 @@ class Trajectory(object):
                     lastins = len(tmesh_glob)
                     lenstart = len(start_ins)
                     tmesh_glob = concatenate((start_ins, tmesh_glob, end_ins))
-                    ins_ixs = list(range(lenstart)) + [i+lenstart for i in ins_ixs] + \
-                            list(range(lastins+lenstart, lastins+lenstart+len(end_ins)))
+                    ins_ixs = (
+                        list(range(lenstart))
+                        + [i + lenstart for i in ins_ixs]
+                        + list(
+                            range(lastins + lenstart, lastins + lenstart + len(end_ins))
+                        )
+                    )
             tmesh_list = tmesh_glob.tolist()
             for i, (t, evname) in enumerate(evtlist):
                 try:
@@ -738,9 +857,9 @@ class Trajectory(object):
                         # t will match exactly
                         ix = tmesh_list.index(t)
                 if asGlobalTime:
-                    evlabels.update(ix, 'Event:'+evname, {'t': t})
+                    evlabels.update(ix, "Event:" + evname, {"t": t})
                 else:
-                    evlabels.update(ix, 'Event:'+evname, {'t': t-self.globalt0})
+                    evlabels.update(ix, "Event:" + evname, {"t": t - self.globalt0})
         else:
             eventdata = None
 
@@ -751,9 +870,15 @@ class Trajectory(object):
 
         if len(tmesh) > 0:
             if dt is None:
-                coorddict = dict(zip(coords_sorted, [m[1][ix_range] for m in \
-                                 sortedDictValues(meshdict,
-                                                onlykeys=coords_sorted)]))
+                coorddict = dict(
+                    zip(
+                        coords_sorted,
+                        [
+                            m[1][ix_range]
+                            for m in sortedDictValues(meshdict, onlykeys=coords_sorted)
+                        ],
+                    )
+                )
                 if eventdata:
                     # insert var values at events (SLOW!)
                     # can only insert to lists, so have to convert coorddict
@@ -776,25 +901,30 @@ class Trajectory(object):
                     # due to events very close together
                     tmesh += self.globalt0
                 return self._FScompatibleNamesInv(
-                        Pointset({'coorddict': coorddict,
-                                  'coordtype': float64,
-                                  'coordnames': coords_sorted,
-                                  'indepvararray': tmesh,
-                                  'indepvarname': self.indepvarname,
-                                  'indepvartype': float64,
-                                  'norm': self._normord,
-                                  'name': self.name + "_sample",
-                                  'labels': evlabels}))
+                    Pointset(
+                        {
+                            "coorddict": coorddict,
+                            "coordtype": float64,
+                            "coordnames": coords_sorted,
+                            "indepvararray": tmesh,
+                            "indepvarname": self.indepvarname,
+                            "indepvartype": float64,
+                            "norm": self._normord,
+                            "name": self.name + "_sample",
+                            "labels": evlabels,
+                        }
+                    )
+                )
             elif not precise:
                 try:
                     coorddict = {}
                     for v in coords_sorted:
                         dat = self.variables[v].output.datapoints[1]
                         try:
-                            coorddict[v] = dat[closest+loix]
+                            coorddict[v] = dat[closest + loix]
                         except TypeError:
                             dat = array(dat)
-                            coorddict[v] = dat[closest+loix]
+                            coorddict[v] = dat[closest + loix]
                 except (AttributeError, IndexError):
                     # meshes of variables did not match up, so
                     # continue to 'else' case, as if precise=True
@@ -820,15 +950,20 @@ class Trajectory(object):
                     if asGlobalTime:
                         tmesh += self.globalt0
                     return self._FScompatibleNamesInv(
-                        Pointset({'coorddict': coorddict,
-                                   'coordtype': float64,
-                                   'coordnames': coords_sorted,
-                                   'indepvararray': tmesh,
-                                   'indepvarname': self.indepvarname,
-                                   'indepvartype': float64,
-                                   'norm': self._normord,
-                                   'name': self.name + "_sample",
-                                   'labels': evlabels}))
+                        Pointset(
+                            {
+                                "coorddict": coorddict,
+                                "coordtype": float64,
+                                "coordnames": coords_sorted,
+                                "indepvararray": tmesh,
+                                "indepvarname": self.indepvarname,
+                                "indepvartype": float64,
+                                "norm": self._normord,
+                                "name": self.name + "_sample",
+                                "labels": evlabels,
+                            }
+                        )
+                    )
 
             # else mesh not available for some variables so we have
             # a mixed-source trajectory, and simple solution is to
@@ -845,12 +980,16 @@ class Trajectory(object):
             except AttributeError:
                 # was array already
                 pass
-            pset = Pointset({'coordarray': vals,
-                     'coordnames': coords_sorted,
-                     'indepvararray': array(tmesh),   # globalt0 added later
-                     'indepvarname': self.indepvarname,
-                     'name': self.name + "_sample",
-                     'labels': evlabels})
+            pset = Pointset(
+                {
+                    "coordarray": vals,
+                    "coordnames": coords_sorted,
+                    "indepvararray": array(tmesh),  # globalt0 added later
+                    "indepvarname": self.indepvarname,
+                    "name": self.name + "_sample",
+                    "labels": evlabels,
+                }
+            )
             # if coords was not sorted, call to self could potentially return
             # an array in a different order to that of coords.
             if asGlobalTime and self.globalt0 != 0:
@@ -860,29 +999,25 @@ class Trajectory(object):
         else:
             return None
 
-
     def __copy__(self):
         pickledself = pickle.dumps(self)
         c = pickle.loads(pickledself)
-##        c.indepdomain = copy.copy(self.indepdomain)
-##        c.depdomain = copy.copy(self.depdomain)
-##        for vname, v in self.variables.iteritems():
-##            c.variables[vname] = copy.copy(v)
+        ##        c.indepdomain = copy.copy(self.indepdomain)
+        ##        c.depdomain = copy.copy(self.depdomain)
+        ##        for vname, v in self.variables.iteritems():
+        ##            c.variables[vname] = copy.copy(v)
         return c
-
 
     def __deepcopy__(self, memo=None, _nil=[]):
         pickledself = pickle.dumps(self)
         return pickle.loads(pickledself)
 
-
     def __getstate__(self):
         d = copy.copy(self.__dict__)
         # remove reference to Cfunc types by converting them to strings
-        d['indepvartype'] = _num_type2name[self.indepvartype]
-        d['coordtype'] = _num_type2name[self.coordtype]
+        d["indepvartype"] = _num_type2name[self.indepvartype]
+        d["coordtype"] = _num_type2name[self.coordtype]
         return d
-
 
     def __setstate__(self, state):
         self.__dict__.update(state)
@@ -890,35 +1025,35 @@ class Trajectory(object):
         self.indepvartype = _num_name2type[self.indepvartype]
         self.coordtype = _num_name2type[self.coordtype]
 
-
     def __del__(self):
         # necessary for __del__ methods of variables to be accessed
         for v in self.variables.values():
             v.__del__()
 
-
     def __repr__(self):
         return self._infostr(verbose=0)
 
-
     __str__ = __repr__
-
 
     def _infostr(self, verbose=1):
         if verbose <= 0:
             outputStr = "Trajectory " + self.name
         elif verbose >= 1:
-            outputStr = "Trajectory " + self.name + "\n  of variables: " + \
-                    str(self._FScompatibleNamesInv(list(self.variables.keys())))
+            outputStr = (
+                "Trajectory "
+                + self.name
+                + "\n  of variables: "
+                + str(self._FScompatibleNamesInv(list(self.variables.keys())))
+            )
             outputStr += "\n  over domains: " + str(self.depdomain)
             if verbose == 2:
-                outputStr += joinStrs(["\n"+v._infostr(1) for v in \
-                                            self.variables.values()])
+                outputStr += joinStrs(
+                    ["\n" + v._infostr(1) for v in self.variables.values()]
+                )
         return outputStr
 
     def info(self, verboselevel=1):
         print(self._infostr(verboselevel))
-
 
     def getEvents(self, evnames=None, asGlobalTime=True):
         """Returns a pointset of all named events occuring in global time,
@@ -930,7 +1065,7 @@ class Trajectory(object):
             evnames = list(self.events.keys())
         if isinstance(evnames, str):
             # singleton
-            assert evnames in self.events, "Invalid event name provided: %s"%evnames
+            assert evnames in self.events, "Invalid event name provided: %s" % evnames
             result = copy.copy(self.events[evnames])
             if asGlobalTime:
                 try:
@@ -941,8 +1076,9 @@ class Trajectory(object):
         else:
             result = {}
             # assume iterable
-            assert all([ev in self.events for ev in evnames]), \
-                   "Invalid event name(s) provided: %s"%str(evnames)
+            assert all(
+                [ev in self.events for ev in evnames]
+            ), "Invalid event name(s) provided: %s" % str(evnames)
             for evname in evnames:
                 evptset = self.events[evname]
                 result[evname] = copy.copy(evptset)
@@ -953,7 +1089,6 @@ class Trajectory(object):
                         # empty pointset
                         pass
         return result
-
 
     def getEventTimes(self, evnames=None, asGlobalTime=True):
         """Returns a list of times at which the named events occurred in global
@@ -966,7 +1101,7 @@ class Trajectory(object):
         # self.eventTimes is a dict of lists keyed by event name
         if isinstance(evnames, str):
             # singleton
-            assert evnames in self.events, "Invalid event name provided: %s"%evnames
+            assert evnames in self.events, "Invalid event name provided: %s" % evnames
             if asGlobalTime:
                 result = list(array(self.eventTimes[evnames]) + self.globalt0)
             else:
@@ -977,8 +1112,9 @@ class Trajectory(object):
             else:
                 t_offset = 0
             # assume iterable
-            assert all([ev in self.events for ev in evnames]), \
-                   "Invalid event name(s) provided %s"%str(evnames)
+            assert all(
+                [ev in self.events for ev in evnames]
+            ), "Invalid event name(s) provided %s" % str(evnames)
             for evname in evnames:
                 try:
                     evtimes = self.eventTimes[evname]
@@ -989,8 +1125,6 @@ class Trajectory(object):
         return result
 
 
-
-
 class HybridTrajectory(Trajectory):
     """Hybrid, parameterized, trajectory class.
     Mimics API of a non-hybrid Trajectory.
@@ -998,12 +1132,25 @@ class HybridTrajectory(Trajectory):
     vals must be a sequence of trajectory segments.
     coords is optional (restricts variables to store).
     """
-    def __init__(self, name, vals, coordnames=None, modelNames=None,
-                 timeInterval=None, modelEventStructs=None,
-                 eventTimes=None, events=None,
-                 FScompatibleNames=None, FScompatibleNamesInv=None,
-                 abseps=None, globalt0=0, checklevel=0, norm=2,
-                 timePartitions=None):
+
+    def __init__(
+        self,
+        name,
+        vals,
+        coordnames=None,
+        modelNames=None,
+        timeInterval=None,
+        modelEventStructs=None,
+        eventTimes=None,
+        events=None,
+        FScompatibleNames=None,
+        FScompatibleNamesInv=None,
+        abseps=None,
+        globalt0=0,
+        checklevel=0,
+        norm=2,
+        timePartitions=None,
+    ):
         if isinstance(name, str):
             self.name = name
         else:
@@ -1016,13 +1163,15 @@ class HybridTrajectory(Trajectory):
             # choose coordnames to be all common variable names
             for traj in trajSeq:
                 self.coordnames = intersect(self.coordnames, traj.coordnames)
-                assert traj.indepvarname == self.indepvarname, \
-                         "Inconsistent independent variable names"
+                assert (
+                    traj.indepvarname == self.indepvarname
+                ), "Inconsistent independent variable names"
         else:
             self.coordnames = copy.copy(coordnames)
             for traj in trajSeq:
-                assert traj.indepvarname == self.indepvarname, \
-                         "Inconsistent independent variable names"
+                assert (
+                    traj.indepvarname == self.indepvarname
+                ), "Inconsistent independent variable names"
             if not isUniqueSeq(self.coordnames):
                 raise ValueError("Coordinate names must be unique")
         self.coordnames.sort()
@@ -1030,13 +1179,14 @@ class HybridTrajectory(Trajectory):
         # for when hybrid trajectories can consist of map and non-map parts
         # (some time points will simply not exist in those cases)
         self.indepvartype = trajSeq[0].indepdomain.type
-        self.coordtype = float    # may have to change this
+        self.coordtype = float  # may have to change this
         if timeInterval is None:
             # extract from trajSeq
             tlo = trajSeq[0].indepdomain[0]
             thi = trajSeq[-1].indepdomain[1]
-            timeInterval = Interval(self.indepvarname, self.indepvartype,
-                                         [tlo, thi], abseps=self._abseps)
+            timeInterval = Interval(
+                self.indepvarname, self.indepvartype, [tlo, thi], abseps=self._abseps
+            )
         # partitions are (interval, globalt0, checklevel) triples
         self.timePartitions = timePartitions
         # sequence (list) of other Trajectory or HybridTrajectory objects
@@ -1064,16 +1214,14 @@ class HybridTrajectory(Trajectory):
         self.variables = {}
         self.depdomain = {}
         for ov in self.coordnames:
-            self.variables[ov] = HybridVariable(self, ov,
-                                            timeInterval, abseps=abseps)
-            self.depdomain[ov] = Interval(ov, float, [-Inf, Inf],
-                                            abseps=abseps)
+            self.variables[ov] = HybridVariable(self, ov, timeInterval, abseps=abseps)
+            self.depdomain[ov] = Interval(ov, float, [-Inf, Inf], abseps=abseps)
         self.globalt0 = globalt0
         self.indepdomain = timeInterval
         self._parameterized = True
         self.dimension = len(self.coordnames)
         self._name_ix_map = invertMap(self.coordnames)
-        self.checklevel = checklevel    # unused
+        self.checklevel = checklevel  # unused
         # order for norm of points within trajectory
         self._normord = norm
 
@@ -1089,7 +1237,7 @@ class HybridTrajectory(Trajectory):
         if coords is None:
             coords = self.coordnames
         if not isinstance(coords, list):
-            raise TypeError('coords argument must be a list')
+            raise TypeError("coords argument must be a list")
         meshdict = {}
         if FScompat:
             cs = self._FScompatibleNames(coords)
@@ -1108,14 +1256,14 @@ class HybridTrajectory(Trajectory):
     def showRegimes(self):
         parts = [p[1] for p in self.timePartitions]
         for g, p in zip(self.modelNames, parts):
-            print("Regime: %s, from t = %.5f"%(g,p))
+            print("Regime: %s, from t = %.5f" % (g, p))
 
     def info(self):
         return info(self, "Hybrid Trajectory")
 
-
-    def __call__(self, t, coords=None, checklevel=None,
-                 asGlobalTime=False, asmap=False):
+    def __call__(
+        self, t, coords=None, checklevel=None, asGlobalTime=False, asmap=False
+    ):
         """Evaluate a parameterized hybrid trajectory at given independent
         variable value(s), interpreted as global times if optional
         asGlobalTime==True (default is False).
@@ -1135,8 +1283,9 @@ class HybridTrajectory(Trajectory):
             elif isinstance(coords, list):
                 coords = self._FScompatibleNames(coords)
             if not [varname in self.coordnames for varname in coords]:
-                raise ValueError('one or more variable names not in observable'
-                             ' variable list')
+                raise ValueError(
+                    "one or more variable names not in observable" " variable list"
+                )
         if asGlobalTime and not asmap:
             if isinstance(t, _seq_types):
                 # ensure is an array so that we can subtract globalt0 from all
@@ -1159,13 +1308,16 @@ class HybridTrajectory(Trajectory):
                     result.append([])
                 for tval in t:
                     if not isinstance(tval, _int_types):
-                        raise TypeError("time values must be of integer type "
-                         "when treating system as a mapping")
+                        raise TypeError(
+                            "time values must be of integer type "
+                            "when treating system as a mapping"
+                        )
                     if tval < num_parts:
                         # return first point of partition t
                         part_interval = time_partitions[tval][0]
-                        callvals = trajseq[tval](0, coords,
-                                        asGlobalTime=False, asmap=True)
+                        callvals = trajseq[tval](
+                            0, coords, asGlobalTime=False, asmap=True
+                        )
                         if dim == 1:
                             # callvals is just a float
                             result[0].append(callvals)
@@ -1173,12 +1325,13 @@ class HybridTrajectory(Trajectory):
                             for i in range(dim):
                                 result[i].append(callvals(coords[i]))
                         # adjust time
-                        result[dim-1][-1] += part_interval[0]
+                        result[dim - 1][-1] += part_interval[0]
                     elif tval == num_parts:
                         # return final point of final partition
-                        part_interval = time_partitions[num_parts-1][0]
-                        callvals = trajseq[num_parts-1](1, coords,
-                                        asGlobalTime=False, asmap=True)
+                        part_interval = time_partitions[num_parts - 1][0]
+                        callvals = trajseq[num_parts - 1](
+                            1, coords, asGlobalTime=False, asmap=True
+                        )
                         if dim == 1:
                             # callvals is just a float
                             result[0].append(callvals)
@@ -1186,43 +1339,59 @@ class HybridTrajectory(Trajectory):
                             for i in range(dim):
                                 result[i].append(callvals(coords[i]))
                         # adjust time
-                        result[dim-1][-1] += part_interval[1]
+                        result[dim - 1][-1] += part_interval[1]
                     else:
-                        raise ValueError("time values not in valid "
-                                           "partition range")
-                return Pointset({'coordarray': array(result),
-                     'coordnames': self._FScompatibleNamesInv(coords),
-                     'indepvartype': int32,
-                     'indepvararray': t,
-                     'indepvarname': 'event',
-                     'norm': self._normord
-                     })
+                        raise ValueError("time values not in valid " "partition range")
+                return Pointset(
+                    {
+                        "coordarray": array(result),
+                        "coordnames": self._FScompatibleNamesInv(coords),
+                        "indepvartype": int32,
+                        "indepvararray": t,
+                        "indepvarname": "event",
+                        "norm": self._normord,
+                    }
+                )
             else:
                 if not isinstance(t, int):
-                    raise TypeError("time value must be an integer"
-                                    " when treating system as a mapping")
-                if t not in range(num_parts+1):
-                    raise PyDSTool_BoundsError("time value not in valid"
-                                                 " partition range")
+                    raise TypeError(
+                        "time value must be an integer"
+                        " when treating system as a mapping"
+                    )
+                if t not in range(num_parts + 1):
+                    raise PyDSTool_BoundsError(
+                        "time value not in valid" " partition range"
+                    )
                 if t < num_parts:
                     # return first point of partition t
                     part_interval = time_partitions[t][0]
-                    result = trajseq[t](0, coords,
-                            asGlobalTime=False, asmap=True).toarray().tolist()
+                    result = (
+                        trajseq[t](0, coords, asGlobalTime=False, asmap=True)
+                        .toarray()
+                        .tolist()
+                    )
                     # adjust time (final entry of result)
                     result[-1] += part_interval[0]
                 else:
                     # return final point of final partition
-                    part_interval = time_partitions[num_parts-1][0]
-                    result = trajseq[num_parts-1](1, coords,
-                            asGlobalTime=False, asmap=True).toarray().tolist()
+                    part_interval = time_partitions[num_parts - 1][0]
+                    result = (
+                        trajseq[num_parts - 1](
+                            1, coords, asGlobalTime=False, asmap=True
+                        )
+                        .toarray()
+                        .tolist()
+                    )
                     # adjust time (final entry of result)
                     result[-1] += part_interval[1]
-                return Point({'coordarray': array(result),
-                              'coordnames': \
-                                  self._FScompatibleNamesInv(coords)+[self.indepvarname],
-                              'norm': self._normord
-                             })
+                return Point(
+                    {
+                        "coordarray": array(result),
+                        "coordnames": self._FScompatibleNamesInv(coords)
+                        + [self.indepvarname],
+                        "norm": self._normord,
+                    }
+                )
         else:
             # hybrid system treated as curve
             if not isinstance(t, _seq_types):
@@ -1239,17 +1408,24 @@ class HybridTrajectory(Trajectory):
                 trel_part = []
                 tval = t[tix]
                 if time_interval.contains(tval) is notcontained:
-                    print("\n** Debugging info for Hybrid Traj %s: t value, interval, tolerance ="%self.name)
-                    print("%f %r %f" % (tval, time_interval.get(), time_interval._abseps))
-                    raise PyDSTool_BoundsError('time value outside of '
-                        'trajectory`s time interval '
-                        'of validity (if checklevel was >=2 then endpoints '
-                        'were not included in trajectory)')
+                    print(
+                        "\n** Debugging info for Hybrid Traj %s: t value, interval, tolerance ="
+                        % self.name
+                    )
+                    print(
+                        "%f %r %f" % (tval, time_interval.get(), time_interval._abseps)
+                    )
+                    raise PyDSTool_BoundsError(
+                        "time value outside of "
+                        "trajectory`s time interval "
+                        "of validity (if checklevel was >=2 then endpoints "
+                        "were not included in trajectory)"
+                    )
                 trajseq_pos = 0
                 tfound = False
                 for (part_interval, gt0, cl) in time_partitions:
                     # trelative
-                    trelative = tval - gt0   # a source of rounding error
+                    trelative = tval - gt0  # a source of rounding error
                     contresult = part_interval.contains(trelative)
                     if contresult is contained:
                         # find more t vals in this partition, if any
@@ -1260,15 +1436,15 @@ class HybridTrajectory(Trajectory):
                             if tix >= len(t):
                                 part_done = True
                                 continue  # while loop
-                            trel = t[tix] - gt0   # a source of rounding error
+                            trel = t[tix] - gt0  # a source of rounding error
                             contresult_sub = part_interval.contains(trel)
                             if contresult_sub is contained:
                                 trel_part.append(trel)
                             elif contresult_sub is uncertain:
                                 try:
-                                    dummy = trajseq[trajseq_pos](trel,
-                                                        asGlobalTime=False,
-                                                        checklevel=checklevel)
+                                    dummy = trajseq[trajseq_pos](
+                                        trel, asGlobalTime=False, checklevel=checklevel
+                                    )
                                 except (ValueError, PyDSTool_BoundsError):
                                     # traj segment didn't accept this t value
                                     # exit if statement and increment trajseq_pos
@@ -1288,9 +1464,9 @@ class HybridTrajectory(Trajectory):
                         # segment will accept this value ... then,
                         # find more t vals in this partition, if any
                         try:
-                            dummy = trajseq[trajseq_pos](trelative,
-                                                         asGlobalTime=False,
-                                                         checklevel=checklevel)
+                            dummy = trajseq[trajseq_pos](
+                                trelative, asGlobalTime=False, checklevel=checklevel
+                            )
                         except (ValueError, PyDSTool_BoundsError):
                             # traj segment didn't accept this t value
                             # exit if statement and increment trajseq_pos
@@ -1305,15 +1481,17 @@ class HybridTrajectory(Trajectory):
                                 if tix >= len(t):
                                     part_done = True
                                     continue  # while loop
-                                trel = t[tix] - gt0   # a source of rounding error
+                                trel = t[tix] - gt0  # a source of rounding error
                                 contresult_sub = part_interval.contains(trel)
                                 if contresult_sub is contained:
                                     trel_part.append(trel)
                                 elif contresult_sub is uncertain:
                                     try:
-                                        dummy = trajseq[trajseq_pos](trel,
-                                                            asGlobalTime=False,
-                                                            checklevel=checklevel)
+                                        dummy = trajseq[trajseq_pos](
+                                            trel,
+                                            asGlobalTime=False,
+                                            checklevel=checklevel,
+                                        )
                                     except (ValueError, PyDSTool_BoundsError):
                                         # traj segment didn't accept this t value
                                         # exit if statement and increment trajseq_pos
@@ -1331,16 +1509,16 @@ class HybridTrajectory(Trajectory):
                     trajseq_pos += 1
                 if tfound:
                     # append Pointset of varname values at the t vals
-                    val = trajseq[trajseq_pos](trel_part, coords,
-                                               asGlobalTime=False,
-                                               checklevel=1)
+                    val = trajseq[trajseq_pos](
+                        trel_part, coords, asGlobalTime=False, checklevel=1
+                    )
                     if len(t) == 1:
                         retvals = val.toarray().ravel()
-##                        try:
-##                            retvals = val.ravel()
-##                        except AttributeError:
-##                            print "Trajectory.py WARNING line 1129 - wrong type found"
-##                            retvals = val.toarray().ravel()
+                    ##                        try:
+                    ##                            retvals = val.ravel()
+                    ##                        except AttributeError:
+                    ##                            print "Trajectory.py WARNING line 1129 - wrong type found"
+                    ##                            retvals = val.toarray().ravel()
                     else:
                         retvals.append(val)
                 else:
@@ -1348,12 +1526,14 @@ class HybridTrajectory(Trajectory):
                     print("valid t interval:" + tinterval.get())
                     print("t in interval? -->" + tinterval.contains(tval))
                     print("interval abs eps = " + tinterval._abseps)
-                    raise ValueError('t = '+str(tval)+' is either not in any '
-                                       'time interval defined for this '
-                                       'trajectory, or there was an out-of-range'
-                                       ' value computed (see above warnings). '
-                                       'Decrease step-size / event tolerance or'
-                                       ' increasing abseps tolerance.')
+                    raise ValueError(
+                        "t = " + str(tval) + " is either not in any "
+                        "time interval defined for this "
+                        "trajectory, or there was an out-of-range"
+                        " value computed (see above warnings). "
+                        "Decrease step-size / event tolerance or"
+                        " increasing abseps tolerance."
+                    )
                 # No need to increment tix here. It was incremented inside
                 # the inner while loop the last time a tval was checked.
                 # A failed containment there left tix at the next new value
@@ -1361,28 +1541,43 @@ class HybridTrajectory(Trajectory):
             # switching back to user-domain hierarchical names (if used) the
             # coords list needs to be re-sorted to correspond to the already
             # sorted values in retvals
-            coordnames = self._FScompatibleNamesInv(intersect( \
-                                      trajseq[trajseq_pos].coordnames,
-                                      coords))
+            coordnames = self._FScompatibleNamesInv(
+                intersect(trajseq[trajseq_pos].coordnames, coords)
+            )
             coordnames.sort()
             if len(t) == 1:
                 if len(coords) == 1:
                     return retvals[0]
                 else:
-                    return Point({'coordarray': retvals,
-                          'coordnames': coordnames,
-                           'norm': self._normord})
+                    return Point(
+                        {
+                            "coordarray": retvals,
+                            "coordnames": coordnames,
+                            "norm": self._normord,
+                        }
+                    )
             else:
-                return Pointset({'coordarray': concatenate(retvals).T,
-                         'coordnames': coordnames,
-                         'indepvartype': self.indepvartype,
-                         'indepvararray': t,
-                         'indepvarname': self.indepvarname,
-                         'norm': self._normord})
+                return Pointset(
+                    {
+                        "coordarray": concatenate(retvals).T,
+                        "coordnames": coordnames,
+                        "indepvartype": self.indepvartype,
+                        "indepvararray": t,
+                        "indepvarname": self.indepvarname,
+                        "norm": self._normord,
+                    }
+                )
 
-
-    def sample(self, coords=None, dt=None, tlo=None, thi=None,
-               doEvents=True, precise=False, asGlobalTime=True):
+    def sample(
+        self,
+        coords=None,
+        dt=None,
+        tlo=None,
+        thi=None,
+        doEvents=True,
+        precise=False,
+        asGlobalTime=True,
+    ):
         """Uniformly sample the trajectory over range indicated,
           including any event points specified by optional 'doEvents'
           argument (default True).
@@ -1402,8 +1597,9 @@ class HybridTrajectory(Trajectory):
             coords = self.coordnames
         else:
             if not isinstance(coords, list):
-                assert isinstance(coords, str), \
-                       "coords must be a list of strings or a singleton string"
+                assert isinstance(
+                    coords, str
+                ), "coords must be a list of strings or a singleton string"
                 coords = [coords]
             coords = self._FScompatibleNames(coords)
         t_interval = self.indepdomain
@@ -1419,35 +1615,36 @@ class HybridTrajectory(Trajectory):
             if doEvents:
                 for evname, ev_ts in list(self.eventTimes.items()):
                     if t in ev_ts:
-                        pset.addlabel(0, 'Event:'+evname, {'t': t})
+                        pset.addlabel(0, "Event:" + evname, {"t": t})
             return pset
         else:
-            assert tlo < thi, 't start point must be less than t endpoint'
+            assert tlo < thi, "t start point must be less than t endpoint"
             if doEvents:
                 evs_gen = self.eventTimes
             else:
                 evs_gen = None
             if dt is not None:
-                assert dt < abs(thi-tlo), 'dt must be smaller than time interval'
-##        evs_mod_struct = self.eventStruct
+                assert dt < abs(thi - tlo), "dt must be smaller than time interval"
+        ##        evs_mod_struct = self.eventStruct
         # evs_mod = ?
-##        if evs_mod or evs_gen:
+        ##        if evs_mod or evs_gen:
         if precise:
             if dt is None:
-                raise ValueError("Must specify an explicit dt when precise flag"
-                                 " is set")
+                raise ValueError(
+                    "Must specify an explicit dt when precise flag" " is set"
+                )
             tmesh = concatenate([arange(tlo, thi, dt), [thi]])
             if evs_gen:
-##                # combine event data dictionaries
-##                evs = copy.copy(evs_gen)
-##                if evs_mod != {}:
-##                    evs.update(dict(evs_mod))
+                ##                # combine event data dictionaries
+                ##                evs = copy.copy(evs_gen)
+                ##                if evs_mod != {}:
+                ##                    evs.update(dict(evs_mod))
                 # sort into ordered list of times
                 evtlist = orderEventData(evs_gen, nonames=True)
                 if evtlist != []:
                     tmesh = insertInOrder(tmesh, evtlist)
             if len(tmesh) > 0:
-                pset = self(tmesh,coords)
+                pset = self(tmesh, coords)
             else:
                 return None
         else:
@@ -1457,20 +1654,18 @@ class HybridTrajectory(Trajectory):
                 # tlo and thi if they are beyond that segment's defined range.
                 if pset is None:
                     try:
-                        pset = traj.sample(coords, dt, tlo, thi, doEvents,
-                                           False)
+                        pset = traj.sample(coords, dt, tlo, thi, doEvents, False)
                     except ValueError as e:
-                        if e.message[:7] in ('tlo too', 'thi too'):
+                        if e.message[:7] in ("tlo too", "thi too"):
                             # tlo or thi out of range
                             pass
                         else:
                             raise
                 else:
                     try:
-                        pset_new = traj.sample(coords, dt, tlo, thi,
-                                                doEvents, False)
+                        pset_new = traj.sample(coords, dt, tlo, thi, doEvents, False)
                     except ValueError as e:
-                        if e.message[:7] in ('tlo too', 'thi too'):
+                        if e.message[:7] in ("tlo too", "thi too"):
                             # tlo or thi out of range
                             pass
                         else:
@@ -1484,8 +1679,17 @@ class HybridTrajectory(Trajectory):
 
 # ---------------------------------------------------------------------
 
-def findApproxPeriod(traj, t0, t1_guess=None, T_guess=None, coordname=None,
-               ttol=1e-5, rtol=1e-2, guess_tol=0.1):
+
+def findApproxPeriod(
+    traj,
+    t0,
+    t1_guess=None,
+    T_guess=None,
+    coordname=None,
+    ttol=1e-5,
+    rtol=1e-2,
+    guess_tol=0.1,
+):
     """findPeriod does not ensure minimum period (it is up to the user to
     select a good initial guess, but guess_tol fraction of T_guess will be
     checked as a bracketing interval for bisection."""
@@ -1494,43 +1698,52 @@ def findApproxPeriod(traj, t0, t1_guess=None, T_guess=None, coordname=None,
     if t1_guess is None:
         if T_guess <= 0:
             raise ValueError("Guess for period T must be positive")
-        t1_guess = t0+T_guess
+        t1_guess = t0 + T_guess
     if T_guess is None:
-        T_guess = t0+t1_guess
+        T_guess = t0 + t1_guess
     if t1_guess <= t0:
         raise ValueError("t1 guess must be greater than t0")
     if coordname is None:
         coordname = traj._FScompatibleNamesInv(traj.coordnames[0])
     p0v = traj(t0, coordname)[0]
+
     def f(t):
         try:
-            return traj(t, coordname)[0]-p0v
-        #except (PyDSTool_BoundsError, ValueError):
+            return traj(t, coordname)[0] - p0v
+        # except (PyDSTool_BoundsError, ValueError):
         #    r = 1000.*(t-t0)
         except:
-            print("Error at t=%f: "%t + sys.exc_info()[0] + sys.exc_info()[1])
+            print("Error at t=%f: " % t + sys.exc_info()[0] + sys.exc_info()[1])
             raise
+
     try:
-        result = bisect(f, t1_guess-guess_tol*(t1_guess-t0),
-                        t1_guess+guess_tol*(t1_guess-t0),
-                        xtol=ttol)
+        result = bisect(
+            f,
+            t1_guess - guess_tol * (t1_guess - t0),
+            t1_guess + guess_tol * (t1_guess - t0),
+            xtol=ttol,
+        )
     except RuntimeError:
         raise ValueError("Did not converge for this initial guess")
 
     if traj.dimension == 1:
         max_rval = abs(traj(result) - p0v)
-        rval = max_rval/abs(p0v)  # used for error info
+        rval = max_rval / abs(p0v)  # used for error info
     else:
         xt0 = traj(t0)
-        val = traj(result)-xt0
-        rval = [abs(val[vn]/xt0[vn]) for vn in traj._FScompatibleNamesInv(traj.coordnames)]
+        val = traj(result) - xt0
+        rval = [
+            abs(val[vn] / xt0[vn]) for vn in traj._FScompatibleNamesInv(traj.coordnames)
+        ]
         max_rval = max(rval)
-    if max_rval<rtol:
-        return abs(result-t0)
+    if max_rval < rtol:
+        return abs(result - t0)
     else:
-        print("Did not converge. The endpoint difference at t=%f was:\n"%result +
-          repr(val) +
-          "\nwith infinity-norm %f > %f tolerance.\n"%(max_rval,rtol) +
-          "Try a different starting point," +
-          "a different test variable, or reduce relative tolerance.")
+        print(
+            "Did not converge. The endpoint difference at t=%f was:\n" % result
+            + repr(val)
+            + "\nwith infinity-norm %f > %f tolerance.\n" % (max_rval, rtol)
+            + "Try a different starting point,"
+            + "a different test variable, or reduce relative tolerance."
+        )
         raise ValueError("Did not converge")

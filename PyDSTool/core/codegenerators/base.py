@@ -3,12 +3,11 @@
 
 from __future__ import absolute_import, print_function
 
-from PyDSTool.common import idfn, invertMap, remain
-from PyDSTool.parseUtils import proper_match, convertPowers
+from ...common import idfn, invertMap, remain
+from ...parseUtils import proper_match, convertPowers
 
 
 class CodeGenerator(object):
-
     def __init__(self, fspec, **kwargs):
         self.fspec = fspec
         self.opts = self._set_options(**kwargs)
@@ -17,21 +16,23 @@ class CodeGenerator(object):
 
         try:
             opts = {
-                'start': kwargs.pop('codeinsert_start', '').strip(),
-                'end': kwargs.pop('codeinsert_end', '').strip(),
-                'define': kwargs.pop('define', ''),
-                'power_sign': kwargs.pop('power_sign', '**'),
+                "start": kwargs.pop("codeinsert_start", "").strip(),
+                "end": kwargs.pop("codeinsert_end", "").strip(),
+                "define": kwargs.pop("define", ""),
+                "power_sign": kwargs.pop("power_sign", "**"),
             }
         except AttributeError:
-            raise ValueError('code insert must be a string')
+            raise ValueError("code insert must be a string")
 
         if list(kwargs.keys()):
-            raise KeyError("CodeGenerator: keywords %r unsupported" % list(kwargs.keys()))
+            raise KeyError(
+                "CodeGenerator: keywords %r unsupported" % list(kwargs.keys())
+            )
 
         return opts
 
-    def _format_code(self, code, before='', after='', sep='\n'):
-        return sep.join([s for s in [before, code, after] if s]) if code else ''
+    def _format_code(self, code, before="", after="", sep="\n"):
+        return sep.join([s for s in [before, code, after] if s]) if code else ""
 
     def generate_aux(self):
         raise NotImplementedError
@@ -41,23 +42,32 @@ class CodeGenerator(object):
 
     def generate_special(self, name, spec):
         raise NotImplementedError
+
     def defineMany(self, names, listid, start=0):
-        return ''.join([self.define(n, listid, i + start) for i, n in enumerate(names)])
+        return "".join([self.define(n, listid, i + start) for i, n in enumerate(names)])
 
     def define(self, name, listid, index):
-        return self.opts['define'].format(name, listid, index)
+        return self.opts["define"].format(name, listid, index)
 
     def _normalize_spec(self, spec):
-        if any([pt in spec for pt in ('pow', '**', '^')]):
-            spec = convertPowers(spec, self.opts['power_sign'])
+        if any([pt in spec for pt in ("pow", "**", "^")]):
+            spec = convertPowers(spec, self.opts["power_sign"])
         spec = self._process_builtins(spec)
         return spec
 
     def _process_builtins(self, spec):
         return spec
 
-def _processReused(specnames, specdict, reuseterms, indentstr='',
-                   typestr='', endstatementchar='', parseFunc=idfn):
+
+def _processReused(
+    specnames,
+    specdict,
+    reuseterms,
+    indentstr="",
+    typestr="",
+    endstatementchar="",
+    parseFunc=idfn,
+):
     """Process substitutions of reused terms."""
 
     seenrepterms = []  # for new protected names (global to all spec names)
@@ -86,12 +96,17 @@ def _processReused(specnames, specdict, reuseterms, indentstr='',
             if proper_match(specstr, origterm):
                 specstr = specstr.replace(origterm, repterm)
                 if repterm not in seenrepterms:
-                    reused[specname].append([indentstr,
-                                             typestr + ' ' *
-                                             (len(typestr) > 0),
-                                             repterm, " = ",
-                                             parseFunc(origterm),
-                                             endstatementchar, "\n"])
+                    reused[specname].append(
+                        [
+                            indentstr,
+                            typestr + " " * (len(typestr) > 0),
+                            repterm,
+                            " = ",
+                            parseFunc(origterm),
+                            endstatementchar,
+                            "\n",
+                        ]
+                    )
                     seenrepterms.append(repterm)
             else:
                 # look for this term on second pass
@@ -105,12 +120,17 @@ def _processReused(specnames, specdict, reuseterms, indentstr='',
                     specstr = specstr.replace(origterm, repterm)
                     if repterm not in seenrepterms:
                         seenrepterms.append(repterm)
-                        reused[specname].append([indentstr,
-                                                 typestr + ' ' *
-                                                 (len(typestr) > 0),
-                                                 repterm, " = ",
-                                                 parseFunc(origterm),
-                                                 endstatementchar, "\n"])
+                        reused[specname].append(
+                            [
+                                indentstr,
+                                typestr + " " * (len(typestr) > 0),
+                                repterm,
+                                " = ",
+                                parseFunc(origterm),
+                                endstatementchar,
+                                "\n",
+                            ]
+                        )
         # if replacement terms have already been used in the specifications
         # and there are no occurrences of the terms meant to be replaced then
         # just log the definitions that will be needed without replacing
@@ -119,12 +139,17 @@ def _processReused(specnames, specdict, reuseterms, indentstr='',
             for origterm, repterm in reuseterms.items():
                 # add definition if *replacement* string found in specs
                 if proper_match(specstr, repterm) and repterm not in seenrepterms:
-                    reused[specname].append([indentstr,
-                                             typestr + ' ' *
-                                             (len(typestr) > 0),
-                                             repterm, " = ",
-                                             parseFunc(origterm),
-                                             endstatementchar, "\n"])
+                    reused[specname].append(
+                        [
+                            indentstr,
+                            typestr + " " * (len(typestr) > 0),
+                            repterm,
+                            " = ",
+                            parseFunc(origterm),
+                            endstatementchar,
+                            "\n",
+                        ]
+                    )
                     seenrepterms.append(repterm)
         specdict[specname] = specstr
         # add any dependencies for repeated terms to those that will get
@@ -133,13 +158,17 @@ def _processReused(specnames, specdict, reuseterms, indentstr='',
             if r in are_dependent:
                 for repterm in deps[r]:
                     if repterm not in seenrepterms:
-                        reused[specname].append([indentstr,
-                                                 typestr + ' ' *
-                                                 (len(typestr) > 0),
-                                                 repterm, " = ",
-                                                 parseFunc(
-                                                     reuseterms_inv[repterm]),
-                                                 endstatementchar, "\n"])
+                        reused[specname].append(
+                            [
+                                indentstr,
+                                typestr + " " * (len(typestr) > 0),
+                                repterm,
+                                " = ",
+                                parseFunc(reuseterms_inv[repterm]),
+                                endstatementchar,
+                                "\n",
+                            ]
+                        )
                         seenrepterms.append(repterm)
     # reuseterms may be automatically provided for a range of definitions
     # that may or may not contain instances, and it's too inefficient to
@@ -149,4 +178,4 @@ def _processReused(specnames, specdict, reuseterms, indentstr='',
     #     info(specdict)
     #     raise RuntimeError("Declared reusable term definitions did not match"
     #                        " any occurrences in the specifications")
-    return (reused, specdict, seenrepterms, order)
+    return reused, specdict, seenrepterms, order

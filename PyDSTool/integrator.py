@@ -600,11 +600,11 @@ class integrator:
         self.clearInteg()
         self.clearExtInputs()
 
-    def Run(*args):
+    def Run(self, *args):
         if self.__class__==integrator:
             raise NotImplementedError("Call Run on a concrete subclass")
 
-    def Continue(*args):
+    def Continue(self, *args):
         if self.__class__==integrator:
             raise NotImplementedError("Call Continue on a concrete subclass")
 

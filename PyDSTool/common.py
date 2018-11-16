@@ -12,14 +12,59 @@ import sys, types
 import numpy as npy
 import scipy as spy
 from scipy.optimize import minpack
+
 # In future, will convert these specific imports to be referred as npy.X
-from numpy import Inf, NaN, atleast_1d, clip, less, greater, logical_or, \
-     searchsorted, isfinite, shape, mat, sign, any, all, sometrue, alltrue, \
-     array, swapaxes, zeros, ones, finfo, double, exp, log, \
-     take, less_equal, putmask, ndarray, asarray, \
-     int, float, complex, complexfloating, integer, floating, \
-     int_, int0, int8, int16, int32, int64, float_, float32, float64, \
-     complex_, complex64, complex128, argmin, argmax
+from numpy import (
+    Inf,
+    NaN,
+    atleast_1d,
+    clip,
+    less,
+    greater,
+    logical_or,
+    searchsorted,
+    isfinite,
+    shape,
+    mat,
+    sign,
+    any,
+    all,
+    sometrue,
+    alltrue,
+    array,
+    swapaxes,
+    zeros,
+    ones,
+    finfo,
+    double,
+    exp,
+    log,
+    take,
+    less_equal,
+    putmask,
+    ndarray,
+    asarray,
+    int,
+    float,
+    complex,
+    complexfloating,
+    integer,
+    floating,
+    int_,
+    int0,
+    int8,
+    int16,
+    int32,
+    int64,
+    float_,
+    float32,
+    float64,
+    complex_,
+    complex64,
+    complex128,
+    argmin,
+    argmax,
+)
 from numpy.linalg import norm
 from math import sqrt
 
@@ -54,55 +99,125 @@ import six
 # ----------------------------------------------------------------------------
 ### EXPORTS
 
-_classes = ['interpclass', 'interp0d', 'interp1d', 'Utility',
-            'args', 'pickle', 'Diagnostics',
-            'metric', 'metric_float', 'metric_float_1D', 'metric_L2',
-            'metric_L2_1D', 'metric_weighted_L2', 'metric_weighted_deadzone_L2',
-            'predicate', 'null_predicate', 'and_op', 'or_op', 'not_op']
+_classes = [
+    "interpclass",
+    "interp0d",
+    "interp1d",
+    "Utility",
+    "args",
+    "pickle",
+    "Diagnostics",
+    "metric",
+    "metric_float",
+    "metric_float_1D",
+    "metric_L2",
+    "metric_L2_1D",
+    "metric_weighted_L2",
+    "metric_weighted_deadzone_L2",
+    "predicate",
+    "null_predicate",
+    "and_op",
+    "or_op",
+    "not_op",
+]
 
-_mappings = ['_num_type2name', '_num_name2type',
-             '_num_equivtype', '_num_name2equivtypes',
-             '_pytypefromtype', '_num_maxmin'
-             ]
+_mappings = [
+    "_num_type2name",
+    "_num_name2type",
+    "_num_equivtype",
+    "_num_name2equivtypes",
+    "_pytypefromtype",
+    "_num_maxmin",
+]
 
-_functions = ['isUniqueSeq', 'makeArrayIxMap', 'className',
-              'compareBaseClass', 'compareClassAndBases', 'timestamp',
-              'makeUniqueFn', 'copyVarDict', 'concatStrDict',
-              'invertMap', 'makeSeqUnique', 'insertInOrder', 'uniquePoints',
-              'sortedDictKeys', 'sortedDictValues', 'sortedDictItems',
-              'sortedDictLists', 'compareNumTypes', 'diff', 'diff2',
-              'listid', 'idfn', 'noneFn', 'isincreasing', 'ismonotonic',
-              'extent', 'n_sigdigs_str',
-              'linearInterp', 'object2str', 'getSuperClasses',
-              'filteredDict', 'simplifyMatrixRepr',
-              'makeMultilinearRegrFn', 'fit_quadratic', 'fit_quadratic_at_vertex',
-              'fit_exponential', 'fit_diff_of_exp', 'fit_linear', 'fit_cubic',
-              'smooth_pts', 'nearest_2n_indices',
-              'KroghInterpolator', 'BarycentricInterpolator',
-              'PiecewisePolynomial', 'make_poly_interpolated_curve',
-              'simple_bisection', 'get_opt', 'array_bounds_check',
-              'verify_intbool', 'verify_nonneg', 'verify_pos',
-              'verify_values', 'ensurefloat']
+_functions = [
+    "isUniqueSeq",
+    "makeArrayIxMap",
+    "className",
+    "compareBaseClass",
+    "compareClassAndBases",
+    "timestamp",
+    "makeUniqueFn",
+    "copyVarDict",
+    "concatStrDict",
+    "invertMap",
+    "makeSeqUnique",
+    "insertInOrder",
+    "uniquePoints",
+    "sortedDictKeys",
+    "sortedDictValues",
+    "sortedDictItems",
+    "sortedDictLists",
+    "compareNumTypes",
+    "diff",
+    "diff2",
+    "listid",
+    "idfn",
+    "noneFn",
+    "isincreasing",
+    "ismonotonic",
+    "extent",
+    "n_sigdigs_str",
+    "linearInterp",
+    "object2str",
+    "getSuperClasses",
+    "filteredDict",
+    "simplifyMatrixRepr",
+    "makeMultilinearRegrFn",
+    "fit_quadratic",
+    "fit_quadratic_at_vertex",
+    "fit_exponential",
+    "fit_diff_of_exp",
+    "fit_linear",
+    "fit_cubic",
+    "smooth_pts",
+    "nearest_2n_indices",
+    "KroghInterpolator",
+    "BarycentricInterpolator",
+    "PiecewisePolynomial",
+    "make_poly_interpolated_curve",
+    "simple_bisection",
+    "get_opt",
+    "array_bounds_check",
+    "verify_intbool",
+    "verify_nonneg",
+    "verify_pos",
+    "verify_values",
+    "ensurefloat",
+]
 
-_constants = ['Continuous', 'Discrete', 'targetLangs', '_seq_types',
-              '_num_types', '_int_types', '_float_types', '_complex_types',
-              '_real_types', '_all_numpy_int', '_all_numpy_float',
-              '_all_numpy_complex', '_all_int', '_all_float', '_all_complex',
-              'LargestInt32']
+_constants = [
+    "Continuous",
+    "Discrete",
+    "targetLangs",
+    "_seq_types",
+    "_num_types",
+    "_int_types",
+    "_float_types",
+    "_complex_types",
+    "_real_types",
+    "_all_numpy_int",
+    "_all_numpy_float",
+    "_all_numpy_complex",
+    "_all_int",
+    "_all_float",
+    "_all_complex",
+    "LargestInt32",
+]
 
 __all__ = _functions + _mappings + _classes + _constants
 
 # ----------------------------------------------------------------------------
 
 # global reference for supported target languages
-targetLangs = ['c', 'python', 'matlab'] #, 'xpp', 'dstool'
+targetLangs = ["c", "python", "matlab"]  # , 'xpp', 'dstool'
 
 
 # type mappings and groupings
 
-_num_types = (float, int, floating, integer) # complex, complexfloating
+_num_types = (float, int, floating, integer)  # complex, complexfloating
 
-_int_types = six.integer_types + (integer, )
+_int_types = six.integer_types + (integer,)
 _float_types = (float, floating)
 _complex_types = (complex, complexfloating)
 _real_types = (int, integer, float, floating)
@@ -111,21 +226,21 @@ _seq_types = (list, tuple, ndarray)
 
 _all_numpy_int = (int_, int0, int8, int16, int32, int64)
 
-_all_int = _int_types+_all_numpy_int
-_all_float = _float_types+_all_numpy_float
-_all_complex = _complex_types+_all_numpy_complex
+_all_int = _int_types + _all_numpy_int
+_all_float = _float_types + _all_numpy_float
+_all_complex = _complex_types + _all_numpy_complex
 
 LargestInt32 = 2147483647
 Macheps = finfo(double).eps
 
 # bind common names
-_num_type2name = {float: 'float', int: 'int'} #, complex: 'complex'}
-_num_equivtype = {float: float64, int: int32} #, complex: complex128}
+_num_type2name = {float: "float", int: "int"}  # , complex: 'complex'}
+_num_equivtype = {float: float64, int: int32}  # , complex: complex128}
 for f in _all_float:
-    _num_type2name[f] = 'float'
+    _num_type2name[f] = "float"
     _num_equivtype[f] = float64
 for i in _all_int:
-    _num_type2name[i] = 'int'
+    _num_type2name[i] = "int"
     _num_equivtype[i] = int32
 # Don't yet support complex numbers
 ##for c in _all_complex:
@@ -133,24 +248,25 @@ for i in _all_int:
 ##    _num_equivtype[c] = complex128
 
 # equivalent types for comparison
-_num_name2equivtypes = {'float': _all_float,
-                'int': _all_int}
+_num_name2equivtypes = {"float": _all_float, "int": _all_int}
 ##                'complex': _all_complex}
 
 # default types used by PyDSTool when named
-_num_name2type = {'float': float64, 'int': int32} #, 'complex': complex128}
+_num_name2type = {"float": float64, "int": int32}  # , 'complex': complex128}
 
-_num_maxmin = {float64: [-Inf, Inf],
-             int32: [-LargestInt32-1, LargestInt32],
-##             complex128: [-Inf-Inf*1.0j, Inf+Inf*1.0j]
-             }
+_num_maxmin = {
+    float64: [-Inf, Inf],
+    int32: [-LargestInt32 - 1, LargestInt32],
+    ##             complex128: [-Inf-Inf*1.0j, Inf+Inf*1.0j]
+}
 
-_typefrompytype = {float: float64, int: int32} #, complex: complex128}
-_pytypefromtype = {float64: float, int32: int} #, complex128: complex}
+_typefrompytype = {float: float64, int: int32}  # , complex: complex128}
+_pytypefromtype = {float64: float, int32: int}  # , complex128: complex}
 
 
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 ### PREDICATES ETC
+
 
 class predicate_op(object):
     def __init__(self, predicates):
@@ -171,26 +287,25 @@ class predicate_op(object):
         raise NotImplementedError
 
     def __repr__(self):
-        return self.name + '(' + \
-               ', '.join([repr(p) for p in self.predicates]) + ')'
+        return self.name + "(" + ", ".join([repr(p) for p in self.predicates]) + ")"
 
 
 class and_op(predicate_op):
-    name = 'AND'
+    name = "AND"
 
     def evaluate(self, obj):
         return npy.all([p(obj) for p in self.predicates])
 
 
 class or_op(predicate_op):
-    name = 'OR'
+    name = "OR"
 
     def evaluate(self, obj):
         return npy.any([p(obj) for p in self.predicates])
 
 
 class not_op(predicate_op):
-    name = 'NOT'
+    name = "NOT"
 
     def __init__(self, predicate):
         # make a singleton so that inherited repr works
@@ -213,7 +328,7 @@ class not_op(predicate_op):
 
 class predicate(object):
     # override name in subclass if needed
-    name = ''
+    name = ""
 
     def __init__(self, subject):
         self.subject = subject
@@ -233,19 +348,20 @@ class predicate(object):
 
     def __repr__(self):
         if self.subject is None:
-            s = '<no subject>'
+            s = "<no subject>"
         else:
             s = self.subject
-        return self.name + '(' + s + ')'
+        return self.name + "(" + s + ")"
 
     __str__ = __repr__
 
 
 class null_predicate_class(predicate):
-    name = 'null'
+    name = "null"
 
     def evaluate(self, obj):
         return True
+
 
 null_predicate = null_predicate_class(None)
 
@@ -262,6 +378,7 @@ class metric(object):
     of a parameter estimation residual value. Residual norm will be taken
     by optimizer routines.
     """
+
     def __init__(self):
         self.results = None
 
@@ -275,41 +392,51 @@ class metric(object):
 class metric_float(metric):
     """Simple metric between two real-valued floats.
     """
+
     def __call__(self, x, y):
         self.results = asarray([x - y]).flatten()
         return norm(self.results)
+
 
 class metric_float_1D(metric):
     """Simple metric between two real-valued floats. Version that is suitable for
     scalar optimizers such as BoundMin.
     """
+
     def __call__(self, x, y):
         self.results = abs(asarray([x - y]).flatten())
         return self.results[0]
 
+
 class metric_L2(metric):
     """Measures the standard "distance" between two 1D pointsets or arrays
     using the L-2 norm."""
+
     def __call__(self, pts1, pts2):
-        self.results = asarray(pts1-pts2).flatten()
+        self.results = asarray(pts1 - pts2).flatten()
         return norm(self.results)
+
 
 class metric_L2_1D(metric):
     """Measures the standard "distance" between two 1D pointsets or arrays
     using the L-2 norm."""
+
     def __call__(self, pts1, pts2):
-        norm_val = norm(asarray(pts1-pts2).flatten())
+        norm_val = norm(asarray(pts1 - pts2).flatten())
         self.results = array([norm_val])
         return norm_val
+
 
 class metric_weighted_L2(metric):
     """Measures the standard "distance" between two 1D pointsets or arrays
     using the L-2 norm, after weighting by weights attribute
     (must set weights after creation, e.g. in a feature's _local_init
     method)."""
+
     def __call__(self, pts1, pts2):
-        self.results = array(pts1-pts2).flatten()*self.weights
+        self.results = array(pts1 - pts2).flatten() * self.weights
         return norm(self.results)
+
 
 class metric_weighted_deadzone_L2(metric):
     """Measures the standard "distance" between two 1D pointsets or arrays
@@ -319,8 +446,9 @@ class metric_weighted_deadzone_L2(metric):
     (Must set weights and deadzone vectors/scalars after creation, e.g.
     in a feature's _local_init method).
     """
+
     def __call__(self, pts1, pts2):
-        v = array(pts1-pts2).flatten()*self.weights
+        v = array(pts1 - pts2).flatten() * self.weights
         v = (abs(v) > self.deadzone).astype(int) * v
         self.results = v
         return norm(v)
@@ -331,13 +459,13 @@ def n_sigdigs_str(x, n):
     where n > 0 is an integer.
     """
     format = "%." + str(int(n)) + "g"
-    s = '%s' % float(format % x)
-    if '.' in s:
+    s = "%s" % float(format % x)
+    if "." in s:
         # handle trailing ".0" when not one of the sig. digits
-        pt_idx = s.index('.')
-        if s[0] == '-':
+        pt_idx = s.index(".")
+        if s[0] == "-":
             # pt_idx is one too large
-            if pt_idx-1 >= n:
+            if pt_idx - 1 >= n:
                 return s[:pt_idx]
         else:
             if pt_idx >= n:
@@ -353,33 +481,32 @@ class args(object):
     def __init__(self, **kw):
         self.__dict__ = kw
 
-    def _infostr(self, verbose=1, attributeTitle='args',
-                 ignore_underscored=False):
+    def _infostr(self, verbose=1, attributeTitle="args", ignore_underscored=False):
         # removed offset=0 from arg list
         if len(self.__dict__) > 0:
-            res = "%s ("%attributeTitle
+            res = "%s (" % attributeTitle
             for k, v in self.__dict__.items():
-                if k[0] == '_' and ignore_underscored:
+                if k[0] == "_" and ignore_underscored:
                     continue
                 if verbose == 0:
                     # don't resolve any deeper
-                    if hasattr(v, 'name'):
-                        name = ' ' + v.name
+                    if hasattr(v, "name"):
+                        name = " " + v.name
                     else:
-                        name = ''
+                        name = ""
                     istr = str(type(v)) + name
                 else:
                     try:
-                        istr = v._infostr(verbose-1) #, offset+2)
+                        istr = v._infostr(verbose - 1)  # , offset+2)
                     except AttributeError:
                         istr = str(v)
-                res += "\n%s%s = %s,"%(" ",k,istr)
+                res += "\n%s%s = %s," % (" ", k, istr)
                 # was " "*offset
             # skip last comma
             res = res[:-1] + "\n)"
             return res
         else:
-            return "No %s defined"%attributeTitle
+            return "No %s defined" % attributeTitle
 
     def __repr__(self):
         return self._infostr()
@@ -489,7 +616,7 @@ def get_opt(argopt, attr, default=None):
         return getattr(argopt, attr)
     except AttributeError:
         if default is Exception:
-            raise PyDSTool_AttributeError("Missing option: "+attr)
+            raise PyDSTool_AttributeError("Missing option: " + attr)
         else:
             return default
 
@@ -497,9 +624,17 @@ def get_opt(argopt, attr, default=None):
 class Diagnostics(object):
     """General purpose diagnostics manager."""
 
-    def __init__(self, errmessages=None, errorfields=None, warnmessages=None,
-                 warnfields=None, errorcodes=None, warncodes=None,
-                 outputinfo=None, propagate_dict=None):
+    def __init__(
+        self,
+        errmessages=None,
+        errorfields=None,
+        warnmessages=None,
+        warnfields=None,
+        errorcodes=None,
+        warncodes=None,
+        outputinfo=None,
+        propagate_dict=None,
+    ):
         if warnfields is None:
             warnfields = {}
         if warnmessages is None:
@@ -557,29 +692,32 @@ class Diagnostics(object):
             try:
                 obj.diagnostics.clearWarnings()
             except AttributeError:
-                if hasattr(obj, 'name'):
+                if hasattr(obj, "name"):
                     name = obj.name
                 else:
                     name = str(obj)
-                raise TypeError("Object %s has no diagnostics manager"%name)
+                raise TypeError("Object %s has no diagnostics manager" % name)
 
     def showWarnings(self):
-        if len(self.warnings)>0:
+        if len(self.warnings) > 0:
             print(self.getWarnings())
 
     def getWarnings(self):
-        if len(self.warnings)>0:
-            output = 'Warnings: '
+        if len(self.warnings) > 0:
+            output = "Warnings: "
             for (w, d) in self.warnings:
-                dstr = ''
+                dstr = ""
                 for i in range(len(d)):
                     dentry = d[i]
-                    dstr += self._warnfields[w][i] + ' = ' + str(dentry) + ", "
+                    dstr += self._warnfields[w][i] + " = " + str(dentry) + ", "
                 dstr = dstr[:-2]  # drop trailing comma
-                output += ' Warning code %s:  %s\n Info:  %s ' %(w, \
-                                                self._warnmessages[w], dstr)
+                output += " Warning code %s:  %s\n Info:  %s " % (
+                    w,
+                    self._warnmessages[w],
+                    dstr,
+                )
         else:
-            output = ''
+            output = ""
         return output
 
     def findWarnings(self, code):
@@ -604,29 +742,32 @@ class Diagnostics(object):
             try:
                 obj.diagnostics.clearErrors()
             except AttributeError:
-                if hasattr(obj, 'name'):
+                if hasattr(obj, "name"):
                     name = obj.name
                 else:
                     name = str(obj)
-                raise TypeError("Object %s has no diagnostics manager"%name)
+                raise TypeError("Object %s has no diagnostics manager" % name)
 
     def showErrors(self):
-        if len(self.errors)>0:
+        if len(self.errors) > 0:
             print(self.getErrors())
 
     def getErrors(self):
-        if len(self.errors)>0:
-            output = 'Errors: '
+        if len(self.errors) > 0:
+            output = "Errors: "
             for (e, d) in self.errors:
-                dstr = ''
+                dstr = ""
                 for i in range(len(d)):
                     dentry = d[i]
-                    dstr += self._errorfields[e][i] + ' = ' + str(dentry) + ", "
+                    dstr += self._errorfields[e][i] + " = " + str(dentry) + ", "
                 dstr = dstr[:-2]  # drop trailing comma
-                output += ' Error code %s:  %s\n Info:\n  %s ' %(e, \
-                                                    self._errmessages[e], dstr)
+                output += " Error code %s:  %s\n Info:\n  %s " % (
+                    e,
+                    self._errmessages[e],
+                    dstr,
+                )
         else:
-            output = ''
+            output = ""
         return output
 
     def info(self, verboselevel=0):
@@ -637,6 +778,7 @@ class Diagnostics(object):
 ## ------------------------------------------------------------------
 
 ## Internally used functions
+
 
 def compareNumTypes(t1, t2):
     try:
@@ -670,14 +812,14 @@ def filteredDict(d, keys, neg=False):
 def concatStrDict(d, order=[]):
     """Concatenates all entries of a dictionary (assumed to be
     lists of strings), in optionally specified order."""
-    retstr = ''
+    retstr = ""
     if d != {}:
         if order == []:
             order = list(d.keys())
         for key in order:
             itemlist = d[key]
             for strlist in itemlist:
-                retstr += ''.join(strlist)
+                retstr += "".join(strlist)
     return retstr
 
 
@@ -697,8 +839,9 @@ def copyVarDict(vardict, only_cts=False):
                 out_vars.append(var)
         return dict(zip(out_varnames, out_vars))
     else:
-        return dict(zip(sortedDictKeys(vardict), [copy(v) for v in \
-                                              sortedDictValues(vardict)]))
+        return dict(
+            zip(sortedDictKeys(vardict), [copy(v) for v in sortedDictValues(vardict)])
+        )
 
 
 def insertInOrder(sourcelist, inslist, return_ixs=False, abseps=0):
@@ -740,14 +883,14 @@ def insertInOrder(sourcelist, inslist, return_ixs=False, abseps=0):
             except ValueError:
                 # no 0 value in tcond, so t might be equal to the final value
                 if abs(sorted_sourcelist[-1] - t) < abseps:
-                    close_ixs.append((t,len(sorted_sourcelist)-1))
+                    close_ixs.append((t, len(sorted_sourcelist) - 1))
             else:
-                if abs(sorted_sourcelist[tix-1] - t) >= abseps:
+                if abs(sorted_sourcelist[tix - 1] - t) >= abseps:
                     if tix >= 0:
                         sorted_sourcelist.insert(tix, t)
                         ins_ixs.append(tix)
                 else:
-                    close_ixs.append((t,tix-1))
+                    close_ixs.append((t, tix - 1))
         if was_array:
             if abseps > 0:
                 return array(sorted_sourcelist), ins_ixs, dict(close_ixs)
@@ -766,13 +909,13 @@ def insertInOrder(sourcelist, inslist, return_ixs=False, abseps=0):
             except ValueError:
                 # no 0 value in tcond, so t might be equal to the final value
                 if abs(sorted_sourcelist[-1] - t) < abseps:
-                    close_ixs.append((t,len(sorted_sourcelist)-1))
+                    close_ixs.append((t, len(sorted_sourcelist) - 1))
             else:
-                if abs(sorted_sourcelist[tix-1] - t) >= abseps:
+                if abs(sorted_sourcelist[tix - 1] - t) >= abseps:
                     if tix >= 0:
                         sorted_sourcelist.insert(tix, t)
                 else:
-                    close_ixs.append((t,tix-1))
+                    close_ixs.append((t, tix - 1))
         if was_array:
             if abseps > 0:
                 return array(sorted_sourcelist), dict(close_ixs)
@@ -788,14 +931,14 @@ def insertInOrder(sourcelist, inslist, return_ixs=False, abseps=0):
 def simplifyMatrixRepr(m):
     """Convert matrix object to a compact array
     representation or numeric value."""
-    ma=array(m)
+    ma = array(m)
     l = len(shape(ma))
     if l == 0:
         return m
-    elif l>0 and shape(ma)[0] == 1:
+    elif l > 0 and shape(ma)[0] == 1:
         return simplifyMatrixRepr(ma[0])
-    elif l>1 and shape(ma)[1] == 1:
-        return simplifyMatrixRepr(ma[:,0])
+    elif l > 1 and shape(ma)[1] == 1:
+        return simplifyMatrixRepr(ma[:, 0])
     else:
         return ma
 
@@ -807,28 +950,38 @@ def makeMultilinearRegrFn(arg, xs, ys):
     linear" scalar function from the input data. The two input data
     sequences can each be either all numeric values or all
     strings/symbolic objects, but not a mixture. """
-    assert len(xs)==len(ys), \
-           "You must give x and y lists that are the same length"
-    assert not isinstance(arg, _num_types), \
-           "arg must be a string or symbolic object"
+    assert len(xs) == len(ys), "You must give x and y lists that are the same length"
+    assert not isinstance(arg, _num_types), "arg must be a string or symbolic object"
     argname = str(arg)
 
-    def sub_str(a,b):
-        return '(' + str(a) + '-' + str(b) + ')'
-    def sub_val(a,b):
-        return repr(a-b)
+    def sub_str(a, b):
+        return "(" + str(a) + "-" + str(b) + ")"
+
+    def sub_val(a, b):
+        return repr(a - b)
 
     def interp(n):
-        return rep_y(ys[n-1]) +'+(' + argname + '-(' + rep_x(xs[n-1]) \
-          + '))*' + sub_y(ys[n],ys[n-1]) +'/'+ sub_x(xs[n],xs[n-1])
+        return (
+            rep_y(ys[n - 1])
+            + "+("
+            + argname
+            + "-("
+            + rep_x(xs[n - 1])
+            + "))*"
+            + sub_y(ys[n], ys[n - 1])
+            + "/"
+            + sub_x(xs[n], xs[n - 1])
+        )
 
     x_test = [isinstance(xs[n], _num_types) for n in range(len(xs))]
     if all(x_test):
         rep_x = lambda x: repr(x)
         sub_x = sub_val
     elif any(x_test):
-        raise TypeError("xlist must contain either all string/symbolic types "
-                        "or all numeric values")
+        raise TypeError(
+            "xlist must contain either all string/symbolic types "
+            "or all numeric values"
+        )
     else:
         rep_x = lambda x: str(x)
         sub_x = sub_str
@@ -837,14 +990,20 @@ def makeMultilinearRegrFn(arg, xs, ys):
         rep_y = lambda y: repr(y)
         sub_y = sub_val
     elif any(y_test):
-        raise TypeError("ylist must contain either all string/symbolic types "
-                        "or all numeric values")
+        raise TypeError(
+            "ylist must contain either all string/symbolic types "
+            "or all numeric values"
+        )
     else:
         rep_y = lambda y: str(y)
         sub_y = sub_str
-    mLR = '+'.join(['heav(%s-%s)*(1-heav(%s-%s))*(%s)'%(argname, \
-                     rep_x(xs[n-1]),argname,rep_x(xs[n]),interp(n)) \
-                   for n in range(1,len(xs))])
+    mLR = "+".join(
+        [
+            "heav(%s-%s)*(1-heav(%s-%s))*(%s)"
+            % (argname, rep_x(xs[n - 1]), argname, rep_x(xs[n]), interp(n))
+            for n in range(1, len(xs))
+        ]
+    )
     return ([argname], mLR)
 
 
@@ -856,30 +1015,30 @@ def _scalar_diff(func, x0, dx):
     max_order = 10
     BIG = 1e50
     CON = 1.4
-    CON2 = CON*CON
+    CON2 = CON * CON
     SAFE = 2
-    a=zeros((max_order,max_order),'f')
-    a[0,0] = (func(x0+dx)-func(x0-dx))/(2.*dx)
-    err=BIG
+    a = zeros((max_order, max_order), "f")
+    a[0, 0] = (func(x0 + dx) - func(x0 - dx)) / (2.0 * dx)
+    err = BIG
     ans = NaN
-    for i in range(1,max_order):
+    for i in range(1, max_order):
         dx /= CON
         # try a smaller stepsize
-        a[0,i] = (func(x0+dx)-func(x0-dx))/(2.*dx)
+        a[0, i] = (func(x0 + dx) - func(x0 - dx)) / (2.0 * dx)
         fac = CON2
-        for j in range(1,i):
+        for j in range(1, i):
             # compute extrapolations of various orders, using Neville's
             # algorithm
-            a[j,i] = (a[j-1,i]*fac-a[j-1,i-1])/(fac-1.)
+            a[j, i] = (a[j - 1, i] * fac - a[j - 1, i - 1]) / (fac - 1.0)
             fac *= CON2
-            errt = max([abs(a[j,i]-a[j-1,i]),abs(a[j,i]-a[j-1][i-1])])
+            errt = max([abs(a[j, i] - a[j - 1, i]), abs(a[j, i] - a[j - 1][i - 1])])
             # error strategy:
             # compare each new extrapolation to one order lower, both at the
             # present stepsize and the previous one
             if errt <= err:
                 err = errt
-                ans  = a[j,i]
-        if abs(a[i,i] - a[i-1,i-1]) >= SAFE*err:
+                ans = a[j, i]
+        if abs(a[i, i] - a[i - 1, i - 1]) >= SAFE * err:
             # if higher order is worse by a significant factor SAFE, then
             # quit early
             break
@@ -904,11 +1063,11 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
     """
 
     if isinstance(x0, ndarray):
-        x0type = 'array'
+        x0type = "array"
         if not compareNumTypes(x0.dtype.type, _all_float):
             raise TypeError("Only real-valued arrays valid")
     elif isinstance(x0, _real_types):
-        x0type = 'num'
+        x0type = "num"
         x0 = float(x0)
     else:
         # Point type
@@ -917,15 +1076,17 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
             x0.coordnames
             x0.dimension
         except (AssertionError, AttributeError):
-            raise TypeError("Function and x0 must use real-valued scalar,"
-                            "array, or Point types only")
-        x0type = 'point'
+            raise TypeError(
+                "Function and x0 must use real-valued scalar,"
+                "array, or Point types only"
+            )
+        x0type = "point"
     output_info = {}
     if vars is None:
-        if x0type == 'array':
+        if x0type == "array":
             dim = len(x0)
             vars = list(range(dim))
-        elif x0type == 'num':
+        elif x0type == "num":
             dim = 1
             vars = [0]
         else:
@@ -933,14 +1094,15 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
             dim = x0.dimension
             vars = x0.coordnames
     else:
-        assert isinstance(vars, _seq_types), \
-               "vars argument must be a sequence type"
-        if x0type in ['array', 'num']:
-            assert all(v >= 0 for v in vars), \
-                    "vars argument must hold non-negative integers"
+        assert isinstance(vars, _seq_types), "vars argument must be a sequence type"
+        if x0type in ["array", "num"]:
+            assert all(
+                v >= 0 for v in vars
+            ), "vars argument must hold non-negative integers"
         else:
-            assert all([isinstance(vars[i], str) \
-                 for i in range(len(vars))]), "vars argument must hold strings"
+            assert all(
+                [isinstance(vars[i], str) for i in range(len(vars))]
+            ), "vars argument must hold strings"
         dim = len(vars)
     fx0 = func(x0)
     sfx0 = shape(fx0)
@@ -955,8 +1117,10 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
     except AssertionError:
         print("fx0 shape is %d" % sfx0)
         print(fx0)
-        raise ValueError("Function should return an N-vector or N x 1 matrix,"
-                 " but it returned a matrix with shape %s" % str(sfx0))
+        raise ValueError(
+            "Function should return an N-vector or N x 1 matrix,"
+            " but it returned a matrix with shape %s" % str(sfx0)
+        )
     if isinstance(fx0, _float_types):
         dimf = 1
     elif isinstance(fx0, ndarray):
@@ -973,7 +1137,7 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
             raise TypeError("Only real-valued functions valid")
         dimf = sfx0[0]
     if axes is None:
-        if x0type in ['array', 'num']:
+        if x0type in ["array", "num"]:
             try:
                 axes = list(range(sfx0[0]))
             except IndexError:
@@ -982,45 +1146,48 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
         else:
             axes = fx0.coordnames
     else:
-        assert isinstance(axes, _seq_types), \
-               "axes argument must be a sequence type"
-        if x0type in ['array', 'num']:
-            assert all(a>= 0 for a in axes), \
-                   "axes argument must hold non-negative integers"
+        assert isinstance(axes, _seq_types), "axes argument must be a sequence type"
+        if x0type in ["array", "num"]:
+            assert all(
+                a >= 0 for a in axes
+            ), "axes argument must hold non-negative integers"
         else:
-            assert all([isinstance(axes[i], str) \
-                 for i in range(len(axes))]), "axes argument must hold strings"
+            assert all(
+                [isinstance(axes[i], str) for i in range(len(axes))]
+            ), "axes argument must hold strings"
     if eps is None:
         eps = sqrt(Macheps)
     else:
         assert all(eps > 0), "eps scaling array must be strictly positive"
         if isinstance(eps, _num_types):
-            eps = ones(dim)*eps
+            eps = ones(dim) * eps
         else:
-            assert len(eps) == len(vars), \
-                   "eps scaling array has length mismatch with vars"
+            assert len(eps) == len(
+                vars
+            ), "eps scaling array has length mismatch with vars"
 
-    if x0type == 'array':
-        dx = eps*(abs(x0[vars]) + array(x0[vars]==zeros(dim),'float64'))
-    elif x0type == 'num':
-        dx = eps*(abs(x0) + int(x0==0))
+    if x0type == "array":
+        dx = eps * (abs(x0[vars]) + array(x0[vars] == zeros(dim), "float64"))
+    elif x0type == "num":
+        dx = eps * (abs(x0) + int(x0 == 0))
     else:
         # Point
         x0a = x0[vars].toarray()
-        dx = dict(zip(vars,
-                      eps*(abs(x0a) + array(x0a==zeros(dim),'float64'))))
+        dx = dict(zip(vars, eps * (abs(x0a) + array(x0a == zeros(dim), "float64"))))
     try:
         dim_mat = len(axes)
     except TypeError:
         raise TypeError("axes argument must be a sequence type")
     assert dim_mat <= dimf, "Number of axes greater than dimension of function"
-    df = zeros([dim_mat,dim], 'float64')
-    if x0type == 'array':
-        output_info['error'] = zeros([dim_mat,dim], 'float64')
-        output_info['dx'] = zeros([dim_mat,dim], 'float64')
+    df = zeros([dim_mat, dim], "float64")
+    if x0type == "array":
+        output_info["error"] = zeros([dim_mat, dim], "float64")
+        output_info["dx"] = zeros([dim_mat, dim], "float64")
+
         def update(xa, i, x):
             xa[i] = x
             return xa
+
         for i, vix in enumerate(vars):
             try:
                 # for numpy arrays (otherwise copy returns a regular 'array'!)
@@ -1031,29 +1198,29 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
                 for j in range(dim_mat):
                     f_d = lambda x: func(update(x0_d, vix, x))[axes[j]]
                     df_d, errval, dx_d = _scalar_diff(f_d, x0_d[vix], dx[i])
-                    df[j,i] = df_d
-                    output_info['error'][j,i] = errval
-                    output_info['dx'][j,i] = dx_d
+                    df[j, i] = df_d
+                    output_info["error"][j, i] = errval
+                    output_info["dx"][j, i] = dx_d
             else:
                 for j in range(dim_mat):
                     f_d = lambda x: func(update(x0_d, vix, x))
                     df_d, errval, dx_d = _scalar_diff(f_d, x0_d[vix], dx[i])
-                    df[j,i] = df_d
-                    output_info['error'][j,i] = errval
-                    output_info['dx'][j,i] = dx_d
+                    df[j, i] = df_d
+                    output_info["error"][j, i] = errval
+                    output_info["dx"][j, i] = dx_d
         df = mat(df)
-        output_info['df'] = df
+        output_info["df"] = df
         if output is not None:
             try:
                 output.update(output_info)
             except:
                 raise TypeError("Invalid type for 'output' argument")
         return df
-    elif x0type == 'num':
+    elif x0type == "num":
         df, errval, dx_d = _scalar_diff(func, x0, dx)
-        output_info['df'] = df
-        output_info['error'] = errval
-        output_info['dx'] = dx_d
+        output_info["df"] = df
+        output_info["error"] = errval
+        output_info["dx"] = dx_d
         if output is not None:
             try:
                 output.update(output_info)
@@ -1062,22 +1229,24 @@ def diff(func, x0, vars=None, axes=None, eps=None, output=None):
         return df
     else:
         # Point type
-        output_info['error'] = zeros([dim_mat,dim], 'float64')
-        output_info['dx'] = zeros([dim_mat,dim], 'float64')
+        output_info["error"] = zeros([dim_mat, dim], "float64")
+        output_info["dx"] = zeros([dim_mat, dim], "float64")
+
         def update(xa, vn, x):
             xa[vn] = x
             return xa
+
         for i in range(dim):
             vname = vars[i]
             x0_d = copy(x0)
             for j in range(dim_mat):
                 f_d = lambda x: func(update(x0_d, vname, x))[axes[j]]
                 df_d, errval, dx_d = _scalar_diff(f_d, x0_d[vname], dx[vname])
-                df[j,i] = df_d
-                output_info['error'][j,i] = errval
-                output_info['dx'][j,i] = dx_d
+                df[j, i] = df_d
+                output_info["error"][j, i] = errval
+                output_info["dx"][j, i] = dx_d
         df = mat(df)
-        output_info['df'] = df
+        output_info["df"] = df
         if output is not None:
             try:
                 output.update(output_info)
@@ -1104,7 +1273,7 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
     """
 
     if isinstance(x0, ndarray):
-        x0type = 'array'
+        x0type = "array"
         if not compareNumTypes(x0.dtype.type, _all_float):
             try:
                 x0 = x0.astype(float)
@@ -1112,7 +1281,7 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
                 print("Found type: %s" % x0.dtype.type)
                 raise TypeError("Only real-valued arrays valid")
     elif isinstance(x0, _real_types):
-        x0type = 'num'
+        x0type = "num"
         x0 = float(x0)
     else:
         # Point type
@@ -1121,14 +1290,16 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
             x0.coordnames
             x0.dimension
         except (AssertionError, AttributeError):
-            raise TypeError("Function and x0 must use real-valued scalar,"
-                            "array, or Point types only")
-        x0type = 'point'
+            raise TypeError(
+                "Function and x0 must use real-valued scalar,"
+                "array, or Point types only"
+            )
+        x0type = "point"
     if vars is None:
-        if x0type == 'array':
+        if x0type == "array":
             dim = len(x0)
             vars = list(range(dim))
-        elif x0type == 'num':
+        elif x0type == "num":
             dim = 1
             vars = [0]
         else:
@@ -1136,14 +1307,13 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
             dim = x0.dimension
             vars = x0.coordnames
     else:
-        assert isinstance(vars, _seq_types), \
-               "vars argument must be a sequence type"
-        if x0type in ['array', 'num']:
-            assert all(vars>=0), \
-                    "vars argument must hold non-negative integers"
+        assert isinstance(vars, _seq_types), "vars argument must be a sequence type"
+        if x0type in ["array", "num"]:
+            assert all(vars >= 0), "vars argument must hold non-negative integers"
         else:
-            assert all([isinstance(vars[i], str) \
-                 for i in range(len(vars))]), "vars argument must hold strings"
+            assert all(
+                [isinstance(vars[i], str) for i in range(len(vars))]
+            ), "vars argument must hold strings"
         dim = len(vars)
     fx0 = func(x0)
     sfx0 = shape(fx0)
@@ -1169,8 +1339,10 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
         except AssertionError:
             print("fx0 shape is %d" % sfx0)
             print(fx0)
-            raise ValueError("Function should return an N-vector or N x 1 matrix,"
-                     " but it returned a matrix with shape %s" % str(sfx0))
+            raise ValueError(
+                "Function should return an N-vector or N x 1 matrix,"
+                " but it returned a matrix with shape %s" % str(sfx0)
+            )
     else:
         try:
             assert compareNumTypes(fx0.coordtype, _all_float)
@@ -1178,7 +1350,7 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
             raise TypeError("Only real-valued functions valid")
         dimf = sfx0[0]
     if axes is None:
-        if x0type in ['array', 'num']:
+        if x0type in ["array", "num"]:
             try:
                 axes = list(range(sfx0[0]))
             except IndexError:
@@ -1187,44 +1359,43 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
         else:
             axes = fx0.coordnames
     else:
-        assert isinstance(axes, _seq_types), \
-               "axes argument must be a sequence type"
-        if x0type in ['array', 'num']:
-            assert all(axes>=0), \
-                   "axes argument must hold non-negative integers"
+        assert isinstance(axes, _seq_types), "axes argument must be a sequence type"
+        if x0type in ["array", "num"]:
+            assert all(axes >= 0), "axes argument must hold non-negative integers"
         else:
-            assert all([isinstance(axes[i], str) \
-                 for i in range(len(axes))]), "axes argument must hold strings"
+            assert all(
+                [isinstance(axes[i], str) for i in range(len(axes))]
+            ), "axes argument must hold strings"
     if eps is None:
         eps = sqrt(Macheps)
     else:
         assert all(eps > 0), "eps scaling array must be strictly positive"
         if isinstance(eps, float):
-            if x0type in ['array', 'num']:
-                eps = ones(dim)*eps
+            if x0type in ["array", "num"]:
+                eps = ones(dim) * eps
         else:
-            assert len(eps) == len(vars), \
-                   "eps scaling array has length mismatch with vars"
-            eps = asarray(eps, 'float64')
+            assert len(eps) == len(
+                vars
+            ), "eps scaling array has length mismatch with vars"
+            eps = asarray(eps, "float64")
     # ensure dx is not 0, and make into an appropriate length vector
-    if x0type == 'array':
-        dx = eps*(abs(x0[vars]) + array(x0[vars]==zeros(dim),'float64'))
-    elif x0type == 'num':
-        dx = eps*(abs(x0)+int(x0==0))
+    if x0type == "array":
+        dx = eps * (abs(x0[vars]) + array(x0[vars] == zeros(dim), "float64"))
+    elif x0type == "num":
+        dx = eps * (abs(x0) + int(x0 == 0))
     else:
         # Point
         x0a = x0[vars].toarray()
-        dx = dict(zip(vars,
-                      eps*(abs(x0a) + array(x0a==zeros(dim),'float64'))))
+        dx = dict(zip(vars, eps * (abs(x0a) + array(x0a == zeros(dim), "float64"))))
 
-    assert dir==1 or dir==-1, "Direction code must be -1 or 1"
+    assert dir == 1 or dir == -1, "Direction code must be -1 or 1"
     try:
         dim_mat = len(axes)
     except TypeError:
         raise TypeError("axes argument must be a sequence type")
     assert dim_mat <= dimf, "Number of axes greater than dimension of function"
-    df = zeros([dim_mat,dim], 'float64')
-    if x0type == 'array':
+    df = zeros([dim_mat, dim], "float64")
+    if x0type == "array":
         for i in range(dim):
             vix = vars[i]
             try:
@@ -1244,12 +1415,12 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
                 else:
                     fx0_d_v = fx0_d
                     fx0_v = fx0
-            df[:,i] = dir*(fx0_d_v - fx0_v)/dx[i]
+            df[:, i] = dir * (fx0_d_v - fx0_v) / dx[i]
         return mat(df)
-    elif x0type == 'num':
-        x0_d = x0 + dir*dx
+    elif x0type == "num":
+        x0_d = x0 + dir * dx
         fx0_d = func(x0_d)
-        df = dir*(fx0_d - fx0)/dx
+        df = dir * (fx0_d - fx0) / dx
         return df
     else:
         # Point type
@@ -1259,7 +1430,7 @@ def diff2(func, x0, vars=None, axes=None, dir=1, eps=None):
             x0_d[vname] = x0_d(vname) + dir * dx[vname]
             fx0_d = func(x0_d)[axes]
             fx0_v = fx0[axes]
-            df[:,i] = dir*(fx0_d - fx0_v).toarray()/dx[vname]
+            df[:, i] = dir * (fx0_d - fx0_v).toarray() / dx[vname]
         return mat(df)
 
 
@@ -1276,14 +1447,18 @@ def ensurefloat(v):
         pass
     return float(v)
 
-_verify_type_names = {_all_int: 'an integer',
-                      _all_float: 'a float',
-                      _real_types: 'a real number',
-                      _all_complex: 'a complex number'}
+
+_verify_type_names = {
+    _all_int: "an integer",
+    _all_float: "a float",
+    _real_types: "a real number",
+    _all_complex: "a complex number",
+}
 
 # Only support lists because the primary use of these functions is for
 # checking input to SWIG-interfaced data structures passed down to C
 # and Fortran, which must be basic types only.
+
 
 def verify_values(name, value, values, list_ok=False, list_len=None):
     """Use list_ok if a list of values of these types is acceptable.
@@ -1296,29 +1471,30 @@ def verify_values(name, value, values, list_ok=False, list_len=None):
         if isinstance(value, list):
             if list_len is not None:
                 if isinstance(list_len, _all_int):
-                    ok = (len(value) == list_len)
-                    len_name = '%d' % list_len
+                    ok = len(value) == list_len
+                    len_name = "%d" % list_len
                 else:
-                    ok = (len(value) == list_len[0])
+                    ok = len(value) == list_len[0]
                     len_name = list_len[1]
                 if not ok:
-                    raise ValueError("list "+name+" length must equal "+len_name)
+                    raise ValueError("list " + name + " length must equal " + len_name)
             for v in value:
                 try:
                     # make sure v is not a list too
                     verify_values(name, v, values)
                 except ValueError:
-                    raise ValueError(name+" must be in " + str(values) + \
-                                     " or a list of these")
+                    raise ValueError(
+                        name + " must be in " + str(values) + " or a list of these"
+                    )
                 except TypeError:
-                    raise TypeError(name+" must be in " + str(values) + \
-                                     " or a list of these")
+                    raise TypeError(
+                        name + " must be in " + str(values) + " or a list of these"
+                    )
         else:
-            raise TypeError(name+" must be in " + str(values) + \
-                            " or a list of these")
+            raise TypeError(name + " must be in " + str(values) + " or a list of these")
     else:
         if value not in values:
-            raise ValueError(name+" must be in " + str(values))
+            raise ValueError(name + " must be in " + str(values))
 
 
 def verify_intbool(name, value, list_ok=False, list_len=None):
@@ -1332,31 +1508,34 @@ def verify_intbool(name, value, list_ok=False, list_len=None):
         if isinstance(value, list):
             if list_len is not None:
                 if isinstance(list_len, _all_int):
-                    ok = (len(value) == list_len)
-                    len_name = '%d' % list_len
+                    ok = len(value) == list_len
+                    len_name = "%d" % list_len
                 else:
-                    ok = (len(value) == list_len[0])
+                    ok = len(value) == list_len[0]
                     len_name = list_len[1]
                 if not ok:
-                    raise ValueError("list "+name+" length must equal "+len_name)
+                    raise ValueError("list " + name + " length must equal " + len_name)
             for v in value:
                 try:
                     # make sure v is not a list too
                     verify_intbool(name, v)
                 except ValueError:
-                    raise ValueError(name+" must be 0, 1, or a boolean," + \
-                                     " or a list of these")
+                    raise ValueError(
+                        name + " must be 0, 1, or a boolean," + " or a list of these"
+                    )
                 except TypeError:
-                    raise TypeError(name+" must be 0, 1, or a boolean," + \
-                                     " or a list of these")
+                    raise TypeError(
+                        name + " must be 0, 1, or a boolean," + " or a list of these"
+                    )
         else:
-            raise TypeError(name+" must be 0, 1, or a boolean," + \
-                            " or a list of these")
+            raise TypeError(
+                name + " must be 0, 1, or a boolean," + " or a list of these"
+            )
     elif isinstance(value, _all_int):
         if value not in [0, 1]:
-            raise ValueError("integer "+name+" must be 0 or 1")
+            raise ValueError("integer " + name + " must be 0 or 1")
     elif not isinstance(value, bool):
-        raise TypeError(name+" must be 0, 1 or a boolean")
+        raise TypeError(name + " must be 0, 1 or a boolean")
 
 
 def verify_nonneg(name, value, types, list_ok=False, list_len=None):
@@ -1368,34 +1547,47 @@ def verify_nonneg(name, value, types, list_ok=False, list_len=None):
     """
     if isinstance(value, types):
         if value < 0:
-            raise ValueError(name+" must be non-negative")
+            raise ValueError(name + " must be non-negative")
     elif list_ok:
         if isinstance(value, list):
             if list_len is not None:
                 if isinstance(list_len, _all_int):
-                    ok = (len(value) == list_len)
-                    len_name = '%d' % list_len
+                    ok = len(value) == list_len
+                    len_name = "%d" % list_len
                 else:
-                    ok = (len(value) == list_len[0])
+                    ok = len(value) == list_len[0]
                     len_name = list_len[1]
                 if not ok:
-                    raise ValueError("list "+name+" length must equal "+len_name)
+                    raise ValueError("list " + name + " length must equal " + len_name)
             for v in value:
                 try:
                     # make sure v is not a list too
                     verify_nonneg(name, v, types)
                 except ValueError:
-                    raise ValueError(name+" must be "+_verify_type_names[types]+ \
-                                     " and non-negative, or a list of these")
+                    raise ValueError(
+                        name
+                        + " must be "
+                        + _verify_type_names[types]
+                        + " and non-negative, or a list of these"
+                    )
                 except TypeError:
-                    raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                                     " and non-negative, or a list of these")
+                    raise TypeError(
+                        name
+                        + " must be "
+                        + _verify_type_names[types]
+                        + " and non-negative, or a list of these"
+                    )
         else:
-            raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                            " and non-negative, or a list of these")
+            raise TypeError(
+                name
+                + " must be "
+                + _verify_type_names[types]
+                + " and non-negative, or a list of these"
+            )
     else:
-        raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                            " and non-negative")
+        raise TypeError(
+            name + " must be " + _verify_type_names[types] + " and non-negative"
+        )
 
 
 def verify_pos(name, value, types, list_ok=False, list_len=None):
@@ -1407,34 +1599,47 @@ def verify_pos(name, value, types, list_ok=False, list_len=None):
     """
     if isinstance(value, types):
         if value <= 0:
-            raise ValueError(name+" must be positive")
+            raise ValueError(name + " must be positive")
     elif list_ok:
         if isinstance(value, list):
             if list_len is not None:
                 if isinstance(list_len, _all_int):
-                    ok = (len(value) == list_len)
-                    len_name = '%d' % list_len
+                    ok = len(value) == list_len
+                    len_name = "%d" % list_len
                 else:
-                    ok = (len(value) == list_len[0])
+                    ok = len(value) == list_len[0]
                     len_name = list_len[1]
                 if not ok:
-                    raise ValueError("list "+name+" length must equal "+len_name)
+                    raise ValueError("list " + name + " length must equal " + len_name)
             for v in value:
                 try:
                     # make sure v is not a list too
                     verify_nonneg(name, v, types)
                 except ValueError:
-                    raise ValueError(name+" must be "+_verify_type_names[types]+ \
-                                     " and positive, or a list of these")
+                    raise ValueError(
+                        name
+                        + " must be "
+                        + _verify_type_names[types]
+                        + " and positive, or a list of these"
+                    )
                 except TypeError:
-                    raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                                     " and positive, or a list of these")
+                    raise TypeError(
+                        name
+                        + " must be "
+                        + _verify_type_names[types]
+                        + " and positive, or a list of these"
+                    )
         else:
-            raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                            " and positive, or a list of these")
+            raise TypeError(
+                name
+                + " must be "
+                + _verify_type_names[types]
+                + " and positive, or a list of these"
+            )
     else:
-        raise TypeError(name+" must be "+_verify_type_names[types]+ \
-                            " and positive")
+        raise TypeError(
+            name + " must be " + _verify_type_names[types] + " and positive"
+        )
 
 
 def array_bounds_check(a, bounds, dirn=1):
@@ -1446,16 +1651,16 @@ def array_bounds_check(a, bounds, dirn=1):
     dirn=1, or the latest if dirn=-1."""
     if dirn == 1:
         OK_ix = len(a)
-        alo = asarray(a<bounds, int)
-        ahi = asarray(a>bounds, int)
+        alo = asarray(a < bounds, int)
+        ahi = asarray(a > bounds, int)
         alo_first = alo.argmax()
         ahi_first = ahi.argmax()
         test_val = 0
         compare = min
     elif dirn == -1:
         OK_ix = -1
-        alo = 1 - asarray(a<bounds, int)
-        ahi = 1 - asarray(a>bounds, int)
+        alo = 1 - asarray(a < bounds, int)
+        ahi = 1 - asarray(a > bounds, int)
         alo_first = alo.argmin()
         ahi_first = ahi.argmin()
         test_val = 1
@@ -1478,7 +1683,7 @@ def array_bounds_check(a, bounds, dirn=1):
 def linearInterp(y0, ygoal, y1, x0, x1):
     """Internal utility function to linearly interpolate between two
     data points."""
-    return ( x1 * (ygoal - y0) + x0 * ( y1 - ygoal) ) / (y1 - y0)
+    return (x1 * (ygoal - y0) + x0 * (y1 - ygoal)) / (y1 - y0)
 
 
 def makeUniqueFn(fstr, tdigits=0, idstr=None):
@@ -1488,10 +1693,12 @@ def makeUniqueFn(fstr, tdigits=0, idstr=None):
     clashes, and need to be distinguished when DS objects are copied."""
     # check for syntax errors
     try:
-        code = compile(fstr, 'test', 'exec')
+        code = compile(fstr, "test", "exec")
     except:
-        print(" Cannot make unique function because of a syntax (or other) error " \
-              "in supplied code:\n")
+        print(
+            " Cannot make unique function because of a syntax (or other) error "
+            "in supplied code:\n"
+        )
         print(fstr)
         raise
     bracepos = fstr.index("(")
@@ -1511,7 +1718,7 @@ def timestamp(tdigits=8):
     """Return a unique timestamp string for the session. useful for ensuring
     unique function identifiers, etc.
     """
-    return str(time.clock()).replace(".", "").replace("-","")[:tdigits+1]
+    return str(time.clock()).replace(".", "").replace("-", "")[: tdigits + 1]
 
 
 def isUniqueSeq(objlist):
@@ -1531,39 +1738,39 @@ def object2str(x, digits=5):
     """Convert occurrences of types / classes,
     to pretty-printable strings."""
     try:
-        if type(x) in six.class_types + (type, ):
+        if type(x) in six.class_types + (type,):
             return className(x, True)
         elif isinstance(x, list):
             # search through any iterable parts (that aren't strings)
             rx = "["
-            if len(x)>0:
+            if len(x) > 0:
                 for o in x:
                     rx += object2str(o, digits) + ", "
-                return rx[:-2]+"]"
+                return rx[:-2] + "]"
             else:
-                return rx+"]"
+                return rx + "]"
         elif isinstance(x, tuple):
             rx = "("
-            if len(x)>0:
+            if len(x) > 0:
                 for o in x:
                     rx += object2str(o, digits) + ", "
-                return rx[:-2]+")"
+                return rx[:-2] + ")"
             else:
-                return rx+")"
+                return rx + ")"
         elif isinstance(x, dict):
             rx = "{"
-            if len(x)>0:
+            if len(x) > 0:
                 for k, o in x.items():
                     rx += object2str(k, digits) + ": " + object2str(o, digits) + ", "
-                return rx[:-2]+"}"
+                return rx[:-2] + "}"
             else:
-                return rx+"}"
+                return rx + "}"
         elif isinstance(x, str):
             # this removes extraneous single quotes around dict keys, for instance
             return x
         elif isinstance(x, float):
-            format_str = '"%%.%if"'%digits
-            return eval(format_str + '%x')
+            format_str = '"%%.%if"' % digits
+            return eval(format_str + "%x")
         else:
             return repr(x)
     except:
@@ -1615,26 +1822,28 @@ def compareClassAndBases(input, arg):
                 # input is an instance
                 return isinstance(input, arg)
         except TypeError:
-            raise TypeError("Invalid class(es) provided: input %s vs. %s" \
-                            %(str(input)+" of type "+className(input),className(arg,True)))
+            raise TypeError(
+                "Invalid class(es) provided: input %s vs. %s"
+                % (str(input) + " of type " + className(input), className(arg, True))
+            )
 
 
 def getSuperClasses(obj, limitClasses=None):
     """Return string names of all super classes of a given object"""
     if limitClasses == None:
-        limitClassNames = ['object']
+        limitClassNames = ["object"]
     elif isinstance(limitClasses, list):
         limitClassNames = [className(lc) for lc in limitClasses]
     else:
         # singleton class
         limitClassNames = [className(limitClasses)]
     # ensure "object" safety net is present
-    if 'object' not in limitClassNames:
-        limitClassNames.append('object')
+    if "object" not in limitClassNames:
+        limitClassNames.append("object")
     search_obj = [obj.__class__]
     sclasses = [className(search_obj[0])]
     # don't start while loop if obj is already of a type in limitClasses
-    done = (sclasses[0] in limitClassNames)
+    done = sclasses[0] in limitClassNames
     c = 0
     while not done and c < 10:
         c += 1
@@ -1714,19 +1923,19 @@ def invertMap(themap):
             # try it the slow way for this case
             result = {}
             for k, v in themap.items():
-                if isinstance(v, (list,tuple)):
+                if isinstance(v, (list, tuple)):
                     for val in v:
                         result[val] = k
                 else:
                     result[v] = k
             return result
-    elif isinstance(themap, (list,tuple)):
+    elif isinstance(themap, (list, tuple)):
         # input domain is the position index
         return dict(zip(themap, range(len(themap))))
     elif isinstance(themap, ndarray):
         # input domain is the position index
         return dict(zip(themap.tolist(), range(len(themap))))
-    elif hasattr(themap, 'inverse'):
+    elif hasattr(themap, "inverse"):
         # symbolMapClass type
         return themap.inverse()
     else:
@@ -1746,8 +1955,9 @@ def isincreasing(theseq, withVal=False):
     try:
         v_old = theseq[0]
     except IndexError:
-        raise ValueError("Problem with sequence passed to "
-                         "function `isincreasing` -- is it empty?")
+        raise ValueError(
+            "Problem with sequence passed to " "function `isincreasing` -- is it empty?"
+        )
     v = array(theseq)
     res = v[1:] > v[:-1]
     if withVal:
@@ -1755,7 +1965,7 @@ def isincreasing(theseq, withVal=False):
             return True, None, None
         else:
             pos = res.tolist().index(False)
-            return False, theseq[pos], theseq[pos+1]
+            return False, theseq[pos], theseq[pos + 1]
     else:
         return all(res)
 
@@ -1790,6 +2000,7 @@ def extent(data):
     else:
         return [minval, maxval]
 
+
 def uniquePoints(ar):
     """For an n by m array input, return only points that are unique"""
     result = []
@@ -1817,6 +2028,7 @@ def sortedDictValues(d, onlykeys=None, reverse=False):
         keys.reverse()
     return list(map(d.get, keys))
 
+
 def sortedDictKeys(d, onlykeys=None, reverse=False):
     """Return sorted list of keys from a dictionary.
 
@@ -1830,6 +2042,7 @@ def sortedDictKeys(d, onlykeys=None, reverse=False):
     if reverse:
         keys.reverse()
     return keys
+
 
 def sortedDictLists(d, byvalue=True, onlykeys=None, reverse=False):
     """Return (key list, value list) pair from a dictionary,
@@ -1855,12 +2068,14 @@ def sortedDictLists(d, byvalue=True, onlykeys=None, reverse=False):
         rkeys = [key for (key, val) in i]
     return (rkeys, rvals)
 
+
 def sortedDictItems(d, byvalue=True, onlykeys=None, reverse=False):
     """Return list of (key, value) pairs of a dictionary,
     sorted by value (default) or key.
     Adapted from an original function by Duncan Booth.
     """
     return list(zip(*sortedDictLists(d, byvalue, onlykeys, reverse)))
+
 
 # ----------------------------------------------------------------------
 
@@ -1888,6 +2103,7 @@ class Utility(object):
 Subclasses of Utility could include such things as continuation tools,
 dimension reduction tools, parameter estimation tools.
 """
+
     pass
 
 
@@ -1898,15 +2114,15 @@ dimension reduction tools, parameter estimation tools.
 
 class interpclass(object):
     """Abstract class for interpolators."""
-    interp_axis = -1    # used to set which is default interpolation
-                        # axis.  DO NOT CHANGE OR CODE WILL BREAK.
+
+    interp_axis = -1  # used to set which is default interpolation
+    # axis.  DO NOT CHANGE OR CODE WILL BREAK.
 
 
 class interp0d(interpclass):
     """Design of this class based on SciPy's interp1d"""
 
-    def __init__(self, x, y, axis=-1, makecopy=0, bounds_error=1,
-                 fill_value=None):
+    def __init__(self, x, y, axis=-1, makecopy=0, bounds_error=1, fill_value=None):
         """Initialize a piecewise-constant interpolation class
 
         Description:
@@ -1936,13 +2152,16 @@ class interp0d(interpclass):
                             raised, although this is prone to change.
                             (default: 1)
         """
-        self.datapoints = (array(x, float), array(y, float))   # RHC -- for access from PyDSTool
-        self.type = float   # RHC -- for access from PyDSTool
+        self.datapoints = (
+            array(x, float),
+            array(y, float),
+        )  # RHC -- for access from PyDSTool
+        self.type = float  # RHC -- for access from PyDSTool
         self.axis = axis
-        self.makecopy = makecopy   # RHC -- renamed from copy to avoid nameclash
+        self.makecopy = makecopy  # RHC -- renamed from copy to avoid nameclash
         self.bounds_error = bounds_error
         if fill_value is None:
-            self.fill_value = NaN   # RHC -- was:   array(0.0) / array(0.0)
+            self.fill_value = NaN  # RHC -- was:   array(0.0) / array(0.0)
         else:
             self.fill_value = fill_value
 
@@ -1952,20 +2171,19 @@ class interp0d(interpclass):
         # make a "view" of the y array that is rotated to the
         # interpolation axis.
         oriented_x = x
-        oriented_y = swapaxes(y,self.interp_axis,axis)
+        oriented_y = swapaxes(y, self.interp_axis, axis)
         interp_axis = self.interp_axis
-        len_x,len_y = shape(oriented_x)[interp_axis], \
-                            shape(oriented_y)[interp_axis]
+        len_x, len_y = shape(oriented_x)[interp_axis], shape(oriented_y)[interp_axis]
         if len_x != len_y:
-            raise ValueError("x and y arrays must be equal in length along "
-                              "interpolation axis.")
+            raise ValueError(
+                "x and y arrays must be equal in length along " "interpolation axis."
+            )
         if len_x < 2 or len_y < 2:
             raise ValueError("x and y arrays must have more than 1 entry")
-        self.x = array(oriented_x,copy=self.makecopy)
-        self.y = array(oriented_y,copy=self.makecopy)
+        self.x = array(oriented_x, copy=self.makecopy)
+        self.y = array(oriented_y, copy=self.makecopy)
 
-
-    def __call__(self,x_new):
+    def __call__(self, x_new):
         """Find piecewise-constant interpolated y_new = <name>(x_new).
 
         Inputs:
@@ -1983,20 +2201,21 @@ class interp0d(interpclass):
         # 2. Find where in the orignal data, the values to interpolate
         #    would be inserted.
         #    Note: If x_new[n] = x[m], then m is returned by searchsorted.
-        x_new_indices = searchsorted(self.x,x_new_1d)
+        x_new_indices = searchsorted(self.x, x_new_1d)
         # 3. Clip x_new_indices so that they are within the range of
         #    self.x indices and at least 1.  Removes mis-interpolation
         #    of x_new[n] = x[0]
-        x_new_indices = clip(x_new_indices,1,len(self.x)-1).astype(int)
+        x_new_indices = clip(x_new_indices, 1, len(self.x) - 1).astype(int)
         # 4. Calculate the region that each x_new value falls in.
-        lo = x_new_indices - 1; hi = x_new_indices
+        lo = x_new_indices - 1
+        hi = x_new_indices
 
         # !! take() should default to the last axis (IMHO) and remove
         # !! the extra argument.
         # 5. Calculate the actual value for each entry in x_new.
-        y_lo = take(self.y,lo,axis=self.interp_axis)
-        y_hi = take(self.y,hi,axis=self.interp_axis)
-        y_new = (y_lo+y_hi)/2.
+        y_lo = take(self.y, lo, axis=self.interp_axis)
+        y_hi = take(self.y, hi, axis=self.interp_axis)
+        y_new = (y_lo + y_hi) / 2.0
         # 6. Fill any values that were out of bounds with NaN
         # !! Need to think about how to do this efficiently for
         # !! mutli-dimensional Cases.
@@ -2004,15 +2223,15 @@ class interp0d(interpclass):
         y_new = y_new.ravel()
         new_shape = list(yshape)
         new_shape[self.interp_axis] = 1
-        sec_shape = [1]*len(new_shape)
+        sec_shape = [1] * len(new_shape)
         sec_shape[self.interp_axis] = len(out_of_bounds)
         out_of_bounds.shape = sec_shape
-        new_out = ones(new_shape)*out_of_bounds
+        new_out = ones(new_shape) * out_of_bounds
         putmask(y_new, new_out.ravel(), self.fill_value)
         y_new.shape = yshape
         # Rotate the values of y_new back so that they correspond to the
         # correct x_new values.
-        result = swapaxes(y_new,self.interp_axis,self.axis)
+        result = swapaxes(y_new, self.interp_axis, self.axis)
         try:
             len(x_new)
             return result
@@ -2020,40 +2239,40 @@ class interp0d(interpclass):
             return result[0]
         return result
 
-
-    def _check_bounds(self,x_new):
+    def _check_bounds(self, x_new):
         # If self.bounds_error = 1, we raise an error if any x_new values
         # fall outside the range of x.  Otherwise, we return an array indicating
         # which values are outside the boundary region.
         # !! Needs some work for multi-dimensional x !!
-        below_bounds = less(x_new,self.x[0])
-        above_bounds = greater(x_new,self.x[-1])
+        below_bounds = less(x_new, self.x[0])
+        above_bounds = greater(x_new, self.x[-1])
         #  Note: sometrue has been redefined to handle length 0 arrays
         # !! Could provide more information about which values are out of bounds
         # RHC -- Changed these ValueErrors to PyDSTool_BoundsErrors
         if self.bounds_error and any(sometrue(below_bounds)):
-##            print "Input:", x_new
-##            print "Bound:", self.x[0]
-##            print "Difference input - bound:", x_new-self.x[0]
-            raise PyDSTool_BoundsError(" A value in x_new is below the"
-                              " interpolation range.")
+            ##            print "Input:", x_new
+            ##            print "Bound:", self.x[0]
+            ##            print "Difference input - bound:", x_new-self.x[0]
+            raise PyDSTool_BoundsError(
+                " A value in x_new is below the" " interpolation range."
+            )
         if self.bounds_error and any(sometrue(above_bounds)):
-##            print "Input:", x_new
-##            print "Bound:", self.x[-1]
-##            print "Difference input - bound:", x_new-self.x[-1]
-            raise PyDSTool_BoundsError(" A value in x_new is above the"
-                              " interpolation range.")
+            ##            print "Input:", x_new
+            ##            print "Bound:", self.x[-1]
+            ##            print "Difference input - bound:", x_new-self.x[-1]
+            raise PyDSTool_BoundsError(
+                " A value in x_new is above the" " interpolation range."
+            )
         # !! Should we emit a warning if some values are out of bounds.
         # !! matlab does not.
-        out_of_bounds = logical_or(below_bounds,above_bounds)
+        out_of_bounds = logical_or(below_bounds, above_bounds)
         return out_of_bounds
-
 
     # RHC added
     def __getstate__(self):
         d = copy(self.__dict__)
         # remove reference to Cfunc self.type
-        d['type'] = _num_type2name[self.type]
+        d["type"] = _num_type2name[self.type]
         return d
 
     # RHC added
@@ -2063,10 +2282,10 @@ class interp0d(interpclass):
         self.type = _num_name2type[self.type]
 
 
-
-class interp1d(interpclass):    # RHC -- made this a new-style Python class
-    def __init__(self, x, y, kind='linear', axis=-1,
-                 makecopy = 0, bounds_error=1, fill_value=None):
+class interp1d(interpclass):  # RHC -- made this a new-style Python class
+    def __init__(
+        self, x, y, kind="linear", axis=-1, makecopy=0, bounds_error=1, fill_value=None
+    ):
         """Initialize a 1d piecewise-linear interpolation class
 
         Description:
@@ -2098,19 +2317,24 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
                             raised, although this is prone to change.
                             (default: 1)
         """
-        self.datapoints = (array(x, float), array(y, float))   # RHC -- for access from PyDSTool
-        self.type = float   # RHC -- for access from PyDSTool
+        self.datapoints = (
+            array(x, float),
+            array(y, float),
+        )  # RHC -- for access from PyDSTool
+        self.type = float  # RHC -- for access from PyDSTool
         self.axis = axis
-        self.makecopy = makecopy   # RHC -- renamed from copy to avoid nameclash
+        self.makecopy = makecopy  # RHC -- renamed from copy to avoid nameclash
         self.bounds_error = bounds_error
         if fill_value is None:
-            self.fill_value = NaN   # RHC -- was:   array(0.0) / array(0.0)
+            self.fill_value = NaN  # RHC -- was:   array(0.0) / array(0.0)
         else:
             self.fill_value = fill_value
 
-        if kind != 'linear':
-            raise NotImplementedError("Only linear supported for now. "
-                                      "Use fitpack routines for other types.")
+        if kind != "linear":
+            raise NotImplementedError(
+                "Only linear supported for now. "
+                "Use fitpack routines for other types."
+            )
 
         # Check that both x and y are at least 1 dimensional.
         if len(shape(x)) == 0 or len(shape(y)) == 0:
@@ -2118,20 +2342,19 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
         # make a "view" of the y array that is rotated to the
         # interpolation axis.
         oriented_x = x
-        oriented_y = swapaxes(y,self.interp_axis,axis)
+        oriented_y = swapaxes(y, self.interp_axis, axis)
         interp_axis = self.interp_axis
-        len_x,len_y = shape(oriented_x)[interp_axis], \
-                            shape(oriented_y)[interp_axis]
+        len_x, len_y = shape(oriented_x)[interp_axis], shape(oriented_y)[interp_axis]
         if len_x != len_y:
-            raise ValueError("x and y arrays must be equal in length along "
-                              "interpolation axis.")
+            raise ValueError(
+                "x and y arrays must be equal in length along " "interpolation axis."
+            )
         if len_x < 2 or len_y < 2:
             raise ValueError("x and y arrays must have more than 1 entry")
-        self.x = array(oriented_x,copy=self.makecopy)
-        self.y = array(oriented_y,copy=self.makecopy)
+        self.x = array(oriented_x, copy=self.makecopy)
+        self.y = array(oriented_y, copy=self.makecopy)
 
-
-    def __call__(self,x_new):
+    def __call__(self, x_new):
         """Find linearly interpolated y_new = <name>(x_new).
 
         Inputs:
@@ -2149,23 +2372,24 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
         # 2. Find where in the orignal data, the values to interpolate
         #    would be inserted.
         #    Note: If x_new[n] = x[m], then m is returned by searchsorted.
-        x_new_indices = searchsorted(self.x,x_new_1d)
+        x_new_indices = searchsorted(self.x, x_new_1d)
         # 3. Clip x_new_indices so that they are within the range of
         #    self.x indices and at least 1.  Removes mis-interpolation
         #    of x_new[n] = x[0]
-        x_new_indices = clip(x_new_indices,1,len(self.x)-1).astype(int)
+        x_new_indices = clip(x_new_indices, 1, len(self.x) - 1).astype(int)
         # 4. Calculate the slope of regions that each x_new value falls in.
-        lo = x_new_indices - 1; hi = x_new_indices
+        lo = x_new_indices - 1
+        hi = x_new_indices
 
         # !! take() should default to the last axis (IMHO) and remove
         # !! the extra argument.
-        x_lo = take(self.x,lo,axis=self.interp_axis)
-        x_hi = take(self.x,hi,axis=self.interp_axis)
-        y_lo = take(self.y,lo,axis=self.interp_axis)
-        y_hi = take(self.y,hi,axis=self.interp_axis)
-        slope = (y_hi-y_lo)/(x_hi-x_lo)
+        x_lo = take(self.x, lo, axis=self.interp_axis)
+        x_hi = take(self.x, hi, axis=self.interp_axis)
+        y_lo = take(self.y, lo, axis=self.interp_axis)
+        y_hi = take(self.y, hi, axis=self.interp_axis)
+        slope = (y_hi - y_lo) / (x_hi - x_lo)
         # 5. Calculate the actual value for each entry in x_new.
-        y_new = slope*(x_new_1d-x_lo) + y_lo
+        y_new = slope * (x_new_1d - x_lo) + y_lo
         # 6. Fill any values that were out of bounds with NaN
         # !! Need to think about how to do this efficiently for
         # !! mutli-dimensional Cases.
@@ -2173,15 +2397,15 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
         y_new = y_new.ravel()
         new_shape = list(yshape)
         new_shape[self.interp_axis] = 1
-        sec_shape = [1]*len(new_shape)
+        sec_shape = [1] * len(new_shape)
         sec_shape[self.interp_axis] = len(out_of_bounds)
         out_of_bounds.shape = sec_shape
-        new_out = ones(new_shape)*out_of_bounds
+        new_out = ones(new_shape) * out_of_bounds
         putmask(y_new, new_out.ravel(), self.fill_value)
         y_new.shape = yshape
         # Rotate the values of y_new back so that they correspond to the
         # correct x_new values.
-        result = swapaxes(y_new,self.interp_axis,self.axis)
+        result = swapaxes(y_new, self.interp_axis, self.axis)
         try:
             len(x_new)
             return result
@@ -2189,40 +2413,40 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
             return result[0]
         return result
 
-
-    def _check_bounds(self,x_new):
+    def _check_bounds(self, x_new):
         # If self.bounds_error = 1, we raise an error if any x_new values
         # fall outside the range of x.  Otherwise, we return an array indicating
         # which values are outside the boundary region.
         # !! Needs some work for multi-dimensional x !!
-        below_bounds = less(x_new,self.x[0])
-        above_bounds = greater(x_new,self.x[-1])
+        below_bounds = less(x_new, self.x[0])
+        above_bounds = greater(x_new, self.x[-1])
         #  Note: sometrue has been redefined to handle length 0 arrays
         # !! Could provide more information about which values are out of bounds
         # RHC -- Changed these ValueErrors to PyDSTool_BoundsErrors
         if self.bounds_error and any(sometrue(below_bounds)):
-##            print "Input:", x_new
-##            print "Bound:", self.x[0]
-##            print "Difference input - bound:", x_new-self.x[0]
-            raise PyDSTool_BoundsError("A value in x_new is below the"
-                              " interpolation range.")
+            ##            print "Input:", x_new
+            ##            print "Bound:", self.x[0]
+            ##            print "Difference input - bound:", x_new-self.x[0]
+            raise PyDSTool_BoundsError(
+                "A value in x_new is below the" " interpolation range."
+            )
         if self.bounds_error and any(sometrue(above_bounds)):
-##            print "Input:", x_new
-##            print "Bound:", self.x[-1]
-##            print "Difference input - bound:", x_new-self.x[-1]
-            raise PyDSTool_BoundsError("A value in x_new is above the"
-                              " interpolation range.")
+            ##            print "Input:", x_new
+            ##            print "Bound:", self.x[-1]
+            ##            print "Difference input - bound:", x_new-self.x[-1]
+            raise PyDSTool_BoundsError(
+                "A value in x_new is above the" " interpolation range."
+            )
         # !! Should we emit a warning if some values are out of bounds.
         # !! matlab does not.
-        out_of_bounds = logical_or(below_bounds,above_bounds)
+        out_of_bounds = logical_or(below_bounds, above_bounds)
         return out_of_bounds
-
 
     # RHC added
     def __getstate__(self):
         d = copy(self.__dict__)
         # remove reference to Cfunc self.type
-        d['type'] = _num_type2name[self.type]
+        d["type"] = _num_type2name[self.type]
         return d
 
     # RHC added
@@ -2234,6 +2458,7 @@ class interp1d(interpclass):    # RHC -- made this a new-style Python class
 
 # The following interpolation functions were written and (c) Anne
 # Archibald.
+
 
 class KroghInterpolator(object):
     """The interpolating polynomial for a set of points
@@ -2257,6 +2482,7 @@ class KroghInterpolator(object):
     Based on Krogh 1970, "Efficient Algorithms for Polynomial Interpolation
     and Numerical Differentiation"
     """
+
     def __init__(self, xi, yi):
         """Construct an interpolator passing through the specified points
 
@@ -2282,10 +2508,10 @@ class KroghInterpolator(object):
         """
         self.xi = npy.asarray(xi)
         self.yi = npy.asarray(yi)
-        if len(self.yi.shape)==1:
+        if len(self.yi.shape) == 1:
             self.vector_valued = False
-            self.yi = self.yi[:,npy.newaxis]
-        elif len(self.yi.shape)>2:
+            self.yi = self.yi[:, npy.newaxis]
+        elif len(self.yi.shape) > 2:
             raise ValueError("y coordinates must be either scalars or vectors")
         else:
             self.vector_valued = True
@@ -2293,29 +2519,31 @@ class KroghInterpolator(object):
         n = len(xi)
         self.n = n
         nn, r = self.yi.shape
-        if nn!=n:
-            raise ValueError("%d x values provided and %d y values; must be equal" % (n, nn))
+        if nn != n:
+            raise ValueError(
+                "%d x values provided and %d y values; must be equal" % (n, nn)
+            )
         self.r = r
 
-        c = npy.zeros((n+1,r))
+        c = npy.zeros((n + 1, r))
         c[0] = yi[0]
-        Vk = npy.zeros((n,r))
-        for k in range(1,n):
+        Vk = npy.zeros((n, r))
+        for k in range(1, n):
             s = 0
-            while s<=k and xi[k-s]==xi[k]:
+            while s <= k and xi[k - s] == xi[k]:
                 s += 1
             s -= 1
-            Vk[0] = yi[k]/float(factorial(s))
-            for i in range(k-s):
-                assert xi[i]!=xi[k]
-                if s==0:
-                    Vk[i+1] = (c[i]-Vk[i])/(xi[i]-xi[k])
+            Vk[0] = yi[k] / float(factorial(s))
+            for i in range(k - s):
+                assert xi[i] != xi[k]
+                if s == 0:
+                    Vk[i + 1] = (c[i] - Vk[i]) / (xi[i] - xi[k])
                 else:
-                    Vk[i+1] = (Vk[i+1]-Vk[i])/(xi[i]-xi[k])
-            c[k] = Vk[k-s]
+                    Vk[i + 1] = (Vk[i + 1] - Vk[i]) / (xi[i] - xi[k])
+            c[k] = Vk[k - s]
         self.c = c
 
-    def __call__(self,x):
+    def __call__(self, x):
         """Evaluate the polynomial at the point x
 
         Parameters
@@ -2339,24 +2567,24 @@ class KroghInterpolator(object):
 
         n = self.n
         pi = 1
-        p = npy.zeros((m,self.r))
-        p += self.c[0,npy.newaxis,:]
-        for k in range(1,n):
-            w = x - self.xi[k-1]
-            pi = w*pi
-            p = p + npy.multiply.outer(pi,self.c[k])
+        p = npy.zeros((m, self.r))
+        p += self.c[0, npy.newaxis, :]
+        for k in range(1, n):
+            w = x - self.xi[k - 1]
+            pi = w * pi
+            p = p + npy.multiply.outer(pi, self.c[k])
         if not self.vector_valued:
             if scalar:
-                return p[0,0]
+                return p[0, 0]
             else:
-                return p[:,0]
+                return p[:, 0]
         else:
             if scalar:
                 return p[0]
             else:
                 return p
 
-    def derivatives(self,x,der=None):
+    def derivatives(self, x, der=None):
         """Evaluate many derivatives of the polynomial at the point x
 
         Produce an array of all derivative values at the point x.
@@ -2400,39 +2628,40 @@ class KroghInterpolator(object):
 
         if der is None:
             der = self.n
-        dern = min(self.n,der)
-        pi = npy.zeros((n,m))
-        w = npy.zeros((n,m))
+        dern = min(self.n, der)
+        pi = npy.zeros((n, m))
+        w = npy.zeros((n, m))
         pi[0] = 1
-        p = npy.zeros((m,self.r))
-        p += self.c[0,npy.newaxis,:]
+        p = npy.zeros((m, self.r))
+        p += self.c[0, npy.newaxis, :]
 
-        for k in range(1,n):
-            w[k-1] = x - self.xi[k-1]
-            pi[k] = w[k-1]*pi[k-1]
-            p += npy.multiply.outer(pi[k],self.c[k])
+        for k in range(1, n):
+            w[k - 1] = x - self.xi[k - 1]
+            pi[k] = w[k - 1] * pi[k - 1]
+            p += npy.multiply.outer(pi[k], self.c[k])
 
-        cn = npy.zeros((max(der,n+1),m,r))
-        cn[:n+1,...] += self.c[:n+1,npy.newaxis,:]
+        cn = npy.zeros((max(der, n + 1), m, r))
+        cn[: n + 1, ...] += self.c[: n + 1, npy.newaxis, :]
         cn[0] = p
-        for k in range(1,n):
-            for i in range(1,n-k+1):
-                pi[i] = w[k+i-1]*pi[i-1]+pi[i]
-                cn[k] = cn[k]+pi[i,:,npy.newaxis]*cn[k+i]
-            cn[k]*=factorial(k)
+        for k in range(1, n):
+            for i in range(1, n - k + 1):
+                pi[i] = w[k + i - 1] * pi[i - 1] + pi[i]
+                cn[k] = cn[k] + pi[i, :, npy.newaxis] * cn[k + i]
+            cn[k] *= factorial(k)
 
-        cn[n,...] = 0
+        cn[n, ...] = 0
         if not self.vector_valued:
             if scalar:
-                return cn[:der,0,0]
+                return cn[:der, 0, 0]
             else:
-                return cn[:der,:,0]
+                return cn[:der, :, 0]
         else:
             if scalar:
-                return cn[:der,0]
+                return cn[:der, 0]
             else:
                 return cn[:der]
-    def derivative(self,x,der):
+
+    def derivative(self, x, der):
         """Evaluate one derivative of the polynomial at the point x
 
         Parameters
@@ -2455,7 +2684,7 @@ class KroghInterpolator(object):
         This is computed by evaluating all derivatives up to the desired
         one and then discarding the rest.
         """
-        return self.derivatives(x,der=der+1)[der]
+        return self.derivatives(x, der=der + 1)[der]
 
 
 class BarycentricInterpolator(object):
@@ -2477,6 +2706,7 @@ class BarycentricInterpolator(object):
 
     Based on Berrut and Trefethen 2004, "Barycentric Lagrange Interpolation".
     """
+
     def __init__(self, xi, yi=None):
         """Construct an object capable of interpolating functions sampled at xi
 
@@ -2495,15 +2725,15 @@ class BarycentricInterpolator(object):
         """
         self.n = len(xi)
         self.xi = npy.asarray(xi)
-        if yi is not None and len(yi)!=len(self.xi):
+        if yi is not None and len(yi) != len(self.xi):
             raise ValueError("yi dimensions do not match xi dimensions")
         self.set_yi(yi)
         self.wi = npy.zeros(self.n)
         self.wi[0] = 1
-        for j in range(1,self.n):
-            self.wi[:j]*=(self.xi[j]-self.xi[:j])
-            self.wi[j] = npy.multiply.reduce(self.xi[:j]-self.xi[j])
-        self.wi**=-1
+        for j in range(1, self.n):
+            self.wi[:j] *= self.xi[j] - self.xi[:j]
+            self.wi[j] = npy.multiply.reduce(self.xi[:j] - self.xi[j])
+        self.wi **= -1
 
     def set_yi(self, yi):
         """Update the y values to be interpolated
@@ -2523,20 +2753,19 @@ class BarycentricInterpolator(object):
             self.yi = None
             return
         yi = npy.asarray(yi)
-        if len(yi.shape)==1:
+        if len(yi.shape) == 1:
             self.vector_valued = False
-            yi = yi[:,npy.newaxis]
-        elif len(yi.shape)>2:
+            yi = yi[:, npy.newaxis]
+        elif len(yi.shape) > 2:
             raise ValueError("y coordinates must be either scalars or vectors")
         else:
             self.vector_valued = True
 
         n, r = yi.shape
-        if n!=len(self.xi):
+        if n != len(self.xi):
             raise ValueError("yi dimensions do not match xi dimensions")
         self.yi = yi
         self.r = r
-
 
     def add_xi(self, xi, yi=None):
         """Add more x values to the set to be interpolated
@@ -2558,32 +2787,37 @@ class BarycentricInterpolator(object):
             if self.yi is None:
                 raise ValueError("No previous yi value to update!")
             yi = npy.asarray(yi)
-            if len(yi.shape)==1:
+            if len(yi.shape) == 1:
                 if self.vector_valued:
-                    raise ValueError("Cannot extend dimension %d y vectors with scalars" % self.r)
-                yi = yi[:,npy.newaxis]
-            elif len(yi.shape)>2:
+                    raise ValueError(
+                        "Cannot extend dimension %d y vectors with scalars" % self.r
+                    )
+                yi = yi[:, npy.newaxis]
+            elif len(yi.shape) > 2:
                 raise ValueError("y coordinates must be either scalars or vectors")
             else:
                 n, r = yi.shape
-                if r!=self.r:
-                    raise ValueError("Cannot extend dimension %d y vectors with dimension %d y vectors" % (self.r, r))
+                if r != self.r:
+                    raise ValueError(
+                        "Cannot extend dimension %d y vectors with dimension %d y vectors"
+                        % (self.r, r)
+                    )
 
-            self.yi = npy.vstack((self.yi,yi))
+            self.yi = npy.vstack((self.yi, yi))
         else:
             if self.yi is not None:
                 raise ValueError("No update to yi provided!")
         old_n = self.n
-        self.xi = npy.concatenate((self.xi,xi))
+        self.xi = npy.concatenate((self.xi, xi))
         self.n = len(self.xi)
-        self.wi**=-1
+        self.wi **= -1
         old_wi = self.wi
         self.wi = npy.zeros(self.n)
         self.wi[:old_n] = old_wi
-        for j in range(old_n,self.n):
-            self.wi[:j]*=(self.xi[j]-self.xi[:j])
-            self.wi[j] = npy.multiply.reduce(self.xi[:j]-self.xi[j])
-        self.wi**=-1
+        for j in range(old_n, self.n):
+            self.wi[:j] *= self.xi[j] - self.xi[:j]
+            self.wi[j] = npy.multiply.reduce(self.xi[:j] - self.xi[j])
+        self.wi **= -1
 
     def __call__(self, x):
         """Evaluate the interpolating polynomial at the points x
@@ -2606,23 +2840,24 @@ class BarycentricInterpolator(object):
         """
         scalar = npy.isscalar(x)
         x = npy.atleast_1d(x)
-        c = npy.subtract.outer(x,self.xi)
-        z = c==0
+        c = npy.subtract.outer(x, self.xi)
+        z = c == 0
         c[z] = 1
-        c = self.wi/c
-        p = npy.dot(c,self.yi)/npy.sum(c,axis=-1)[:,npy.newaxis]
+        c = self.wi / c
+        p = npy.dot(c, self.yi) / npy.sum(c, axis=-1)[:, npy.newaxis]
         i, j = npy.nonzero(z)
         p[i] = self.yi[j]
         if not self.vector_valued:
             if scalar:
-                return p[0,0]
+                return p[0, 0]
             else:
-                return p[:,0]
+                return p[:, 0]
         else:
             if scalar:
                 return p[0]
             else:
                 return p
+
 
 # RHC - made a sub-class of interpclass
 class PiecewisePolynomial(interpclass):
@@ -2636,6 +2871,7 @@ class PiecewisePolynomial(interpclass):
 
     Appending points to the end of the curve is efficient.
     """
+
     def __init__(self, xi, yi, orders=None, direction=None):
         """Construct a piecewise polynomial
 
@@ -2665,17 +2901,19 @@ class PiecewisePolynomial(interpclass):
         """
         # RHC added datapoints for use by PyDSTool
         # don't store any derivative information in datapoints
-        self.datapoints = (array(xi, float), array(yi[:,0], float))
-        self.type = float    # RHC -- for access from PyDSTool
+        self.datapoints = (array(xi, float), array(yi[:, 0], float))
+        self.type = float  # RHC -- for access from PyDSTool
         yi0 = npy.asarray(yi[0])
-        if len(yi0.shape)==2:
+        if len(yi0.shape) == 2:
             self.vector_valued = True
             self.r = yi0.shape[1]
-        elif len(yi0.shape)==1:
+        elif len(yi0.shape) == 1:
             self.vector_valued = False
             self.r = 1
         else:
-            raise ValueError("Each derivative must be a vector, not a higher-rank array")
+            raise ValueError(
+                "Each derivative must be a vector, not a higher-rank array"
+            )
 
         self.xi = [xi[0]]
         self.yi = [yi0]
@@ -2684,9 +2922,9 @@ class PiecewisePolynomial(interpclass):
         self.direction = direction
         self.orders = []
         self.polynomials = []
-        self.extend(xi[1:],yi[1:],orders)
+        self.extend(xi[1:], yi[1:], orders)
 
-    def _make_polynomial(self,x1,y1,x2,y2,order,direction):
+    def _make_polynomial(self, x1, y1, x2, y2, order, direction):
         """Construct the interpolating polynomial object
 
         Deduces the number of derivatives to match at each end
@@ -2697,18 +2935,21 @@ class PiecewisePolynomial(interpclass):
         are available at one end or another it draws enough to
         make up the total from the other end.
         """
-        n = order+1
-        n1 = min(n//2,len(y1))
-        n2 = min(n-n1,len(y2))
-        n1 = min(n-n2,len(y1))
-        if n1+n2!=n:
-            raise ValueError("Point %g has %d derivatives, point %g has %d derivatives, but order %d requested" % (x1, len(y1), x2, len(y2), order))
-        assert n1<=len(y1)
-        assert n2<=len(y2)
+        n = order + 1
+        n1 = min(n // 2, len(y1))
+        n2 = min(n - n1, len(y2))
+        n1 = min(n - n2, len(y1))
+        if n1 + n2 != n:
+            raise ValueError(
+                "Point %g has %d derivatives, point %g has %d derivatives, but order %d requested"
+                % (x1, len(y1), x2, len(y2), order)
+            )
+        assert n1 <= len(y1)
+        assert n2 <= len(y2)
 
         xi = npy.zeros(n)
         if self.vector_valued:
-            yi = npy.zeros((n,self.r))
+            yi = npy.zeros((n, self.r))
         else:
             yi = npy.zeros((n,))
 
@@ -2717,7 +2958,7 @@ class PiecewisePolynomial(interpclass):
         xi[n1:] = x2
         yi[n1:] = y2[:n2]
 
-        return KroghInterpolator(xi,yi)
+        return KroghInterpolator(xi, yi)
 
     def append(self, xi, yi, order=None):
         """Append a single point with derivatives to the PiecewisePolynomial
@@ -2734,34 +2975,43 @@ class PiecewisePolynomial(interpclass):
 
         yi = npy.asarray(yi)
         if self.vector_valued:
-            if (len(yi.shape)!=2 or yi.shape[1]!=self.r):
-                raise ValueError("Each derivative must be a vector of length %d" % self.r)
+            if len(yi.shape) != 2 or yi.shape[1] != self.r:
+                raise ValueError(
+                    "Each derivative must be a vector of length %d" % self.r
+                )
         else:
-            if len(yi.shape)!=1:
+            if len(yi.shape) != 1:
                 raise ValueError("Each derivative must be a scalar")
 
         if self.direction is None:
-            self.direction = npy.sign(xi-self.xi[-1])
-        elif (xi-self.xi[-1])*self.direction < 0:
-            raise ValueError("x coordinates must be in the %d direction: %s" % (self.direction, self.xi))
+            self.direction = npy.sign(xi - self.xi[-1])
+        elif (xi - self.xi[-1]) * self.direction < 0:
+            raise ValueError(
+                "x coordinates must be in the %d direction: %s"
+                % (self.direction, self.xi)
+            )
 
         self.xi.append(xi)
         self.yi.append(yi)
 
-
         if order is None:
             n1 = len(self.yi[-2])
             n2 = len(self.yi[-1])
-            n = n1+n2
-            order = n-1
+            n = n1 + n2
+            order = n - 1
 
         self.orders.append(order)
-        self.polynomials.append(self._make_polynomial(
-            self.xi[-2], self.yi[-2],
-            self.xi[-1], self.yi[-1],
-            order, self.direction))
+        self.polynomials.append(
+            self._make_polynomial(
+                self.xi[-2],
+                self.yi[-2],
+                self.xi[-1],
+                self.yi[-1],
+                order,
+                self.direction,
+            )
+        )
         self.n += 1
-
 
     def extend(self, xi, yi, orders=None):
         """Extend the PiecewisePolynomial by a list of points
@@ -2783,9 +3033,9 @@ class PiecewisePolynomial(interpclass):
 
         for i in range(len(xi)):
             if orders is None or npy.isscalar(orders):
-                self.append(xi[i],yi[i],orders)
+                self.append(xi[i], yi[i], orders)
             else:
-                self.append(xi[i],yi[i],orders[i])
+                self.append(xi[i], yi[i], orders[i])
 
     def __call__(self, x):
         """Evaluate the piecewise polynomial
@@ -2799,18 +3049,18 @@ class PiecewisePolynomial(interpclass):
         y : scalar or array-like of length R or length N or N by R
         """
         if npy.isscalar(x):
-            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n-2)
+            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n - 2)
             y = self.polynomials[pos](x)
         else:
             x = npy.asarray(x)
             m = len(x)
-            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n-2)
+            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n - 2)
             if self.vector_valued:
-                y = npy.zeros((m,self.r))
+                y = npy.zeros((m, self.r))
             else:
                 y = npy.zeros(m)
-            for i in range(self.n-1):
-                c = pos==i
+            for i in range(self.n - 1):
+                c = pos == i
                 y[c] = self.polynomials[i](x[c])
         return y
 
@@ -2834,7 +3084,7 @@ class PiecewisePolynomial(interpclass):
         number of nonzero derivatives that a segment can have depends
         on the degree of the segment, which may vary.
         """
-        return self.derivatives(x,der=der+1)[der]
+        return self.derivatives(x, der=der + 1)[der]
 
     def derivatives(self, x, der):
         """Evaluate a derivative of the piecewise polynomial
@@ -2852,27 +3102,28 @@ class PiecewisePolynomial(interpclass):
 
         """
         if npy.isscalar(x):
-            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n-2)
-            y = self.polynomials[pos].derivatives(x,der=der)
+            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n - 2)
+            y = self.polynomials[pos].derivatives(x, der=der)
         else:
             x = npy.asarray(x)
             m = len(x)
-            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n-2)
+            pos = npy.clip(npy.searchsorted(self.xi, x) - 1, 0, self.n - 2)
             if self.vector_valued:
-                y = npy.zeros((der,m,self.r))
+                y = npy.zeros((der, m, self.r))
             else:
-                y = npy.zeros((der,m))
-            for i in range(self.n-1):
-                c = pos==i
-                y[:,c] = self.polynomials[i].derivatives(x[c],der=der)
+                y = npy.zeros((der, m))
+            for i in range(self.n - 1):
+                c = pos == i
+                y[:, c] = self.polynomials[i].derivatives(x[c], der=der)
         return y
+
     # FIXME: provide multiderivative finder
 
     # RHC added
     def __getstate__(self):
         d = copy(self.__dict__)
         # remove reference to Cfunc self.type
-        d['type'] = _num_type2name[self.type]
+        d["type"] = _num_type2name[self.type]
         return d
 
     # RHC added
@@ -2881,7 +3132,9 @@ class PiecewisePolynomial(interpclass):
         # reinstate Cfunc self.type
         self.type = _num_name2type[self.type]
 
+
 # --------------------------------------------------------------------
+
 
 def simple_bisection(tlo, thi, f, tol, imax=100):
     sol = None
@@ -2889,7 +3142,7 @@ def simple_bisection(tlo, thi, f, tol, imax=100):
     fhi = f(thi)
     i = 1
     while i <= imax:
-        d = (thi - tlo)/2.
+        d = (thi - tlo) / 2.0
         p = tlo + d
         if d < tol:
             sol = p
@@ -2899,7 +3152,7 @@ def simple_bisection(tlo, thi, f, tol, imax=100):
             sol = p
             break
         i += 1
-        if fp*flo > 0:
+        if fp * flo > 0:
             tlo = p
             flo = fp
         else:
@@ -2908,7 +3161,9 @@ def simple_bisection(tlo, thi, f, tol, imax=100):
         sol = p
     return sol
 
+
 # Function fitting tools
+
 
 class fit_function(object):
     """Abstract super-class for fitting explicit functions to 1D arrays of data
@@ -2937,15 +3192,14 @@ class fit_function(object):
                  position)
     """
 
-    def __init__(self, pars_ic=None, algpars=None, opts=None,
-                 verbose=False):
+    def __init__(self, pars_ic=None, algpars=None, opts=None, verbose=False):
         # defaults
         self.algpars = args(ftol=1e-8, xtol=1e-6, gtol=1e-8, maxfev=100)
         if algpars is not None:
             self.algpars.update(algpars)
         self.verbose = verbose
         self.pars_ic = pars_ic
-        if hasattr(opts, 'weight'):
+        if hasattr(opts, "weight"):
             self.weight = opts.weight
         else:
             self.weight = 1
@@ -2960,33 +3214,47 @@ class fit_function(object):
 
         if constraint is None:
             if self.verbose:
+
                 def res_fn(p):
                     print("\n%r" % p)
                     r = self.fn(xs, *p) - ys
-                    print("Residual = %f"%norm(r*weight))
-                    return r*weight
+                    print("Residual = %f" % norm(r * weight))
+                    return r * weight
+
             else:
+
                 def res_fn(p):
                     r = self.fn(xs, *p) - ys
-                    return r*weight
+                    return r * weight
+
         else:
             if self.verbose:
+
                 def res_fn(p):
                     print("\n%r" % (p,))
-                    r = npy.concatenate((constraint(*p), (self.fn(xs, *p) - ys)*weight))
-                    print("Residual = %f"%norm(r))
+                    r = npy.concatenate(
+                        (constraint(*p), (self.fn(xs, *p) - ys) * weight)
+                    )
+                    print("Residual = %f" % norm(r))
                     return r
+
             else:
+
                 def res_fn(p):
-                    return npy.concatenate((constraint(*p), (self.fn(xs, *p) - ys)*weight))
+                    return npy.concatenate(
+                        (constraint(*p), (self.fn(xs, *p) - ys) * weight)
+                    )
 
         try:
-            res = minpack.leastsq(res_fn, pars_ic,
-                              full_output = True,
-                              ftol = self.algpars.ftol,
-                              xtol = self.algpars.xtol,
-                              gtol = self.algpars.gtol,
-                              maxfev = self.algpars.maxfev)
+            res = minpack.leastsq(
+                res_fn,
+                pars_ic,
+                full_output=True,
+                ftol=self.algpars.ftol,
+                xtol=self.algpars.xtol,
+                gtol=self.algpars.gtol,
+                maxfev=self.algpars.maxfev,
+            )
         except:
             print("Error at parameters %r" % pars_ic)
             raise
@@ -3012,7 +3280,7 @@ class fit_quadratic(fit_function):
     """
 
     def fn(self, x, a, b, c):
-        return a*x**2+b*x+c
+        return a * x ** 2 + b * x + c
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         try:
@@ -3022,7 +3290,7 @@ class fit_quadratic(fit_function):
 
         if pars_ic is None:
             if self.pars_ic is None:
-                pars_ic = array([1.,1.,0.])
+                pars_ic = array([1.0, 1.0, 0.0])
             else:
                 pars_ic = self.pars_ic
 
@@ -3030,20 +3298,32 @@ class fit_quadratic(fit_function):
             constraint = None
         else:
             x_index, y_value, weight_x, weight_y = peak_constraint
-            def constraint(a,b,c):
-                return array([weight_y*(self.fn(xs[x_index],a,b,c)-y_value),
-                              weight_x*(xs[x_index]+b/(2*a))])
+
+            def constraint(a, b, c):
+                return array(
+                    [
+                        weight_y * (self.fn(xs[x_index], a, b, c) - y_value),
+                        weight_x * (xs[x_index] + b / (2 * a)),
+                    ]
+                )
+
         res = self._do_fit(constraint, xs, ys, pars_ic)
         sol = res[0]
-        a,b,c = sol
+        a, b, c = sol
+
         def f(x):
-            return a*x**2+b*x+c
+            return a * x ** 2 + b * x + c
+
         ys_fit = f(xs)
-        xpeak = -b/(2*a)
+        xpeak = -b / (2 * a)
         ypeak = f(xpeak)
-        return args(ys_fit=ys_fit, pars_fit=(a,b,c), info=res,
-                          results=args(peak=(xpeak, ypeak),
-                                       f=f))
+        return args(
+            ys_fit=ys_fit,
+            pars_fit=(a, b, c),
+            info=res,
+            results=args(peak=(xpeak, ypeak), f=f),
+        )
+
 
 class fit_quadratic_at_vertex(fit_function):
     """Fit a quadratic function y=a*(x+h)**2+k to the (x,y) array data,
@@ -3058,7 +3338,7 @@ class fit_quadratic_at_vertex(fit_function):
     """
 
     def fn(self, x, a):
-        return a*(x+self.h)**2+self.k
+        return a * (x + self.h) ** 2 + self.k
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         self.h, self.k = opts.peak_constraint
@@ -3071,12 +3351,18 @@ class fit_quadratic_at_vertex(fit_function):
         res = self._do_fit(None, xs, ys, pars_ic)
         sol = res[0]
         a = sol
+
         def f(x):
-            return a*(x+self.h)**2+self.k
+            return a * (x + self.h) ** 2 + self.k
+
         ys_fit = f(xs)
-        return args(ys_fit=ys_fit, pars_fit=a, info=res,
-                          results=args(peak=(self.h, self.k),
-                                       f=f))
+        return args(
+            ys_fit=ys_fit,
+            pars_fit=a,
+            info=res,
+            results=args(peak=(self.h, self.k), f=f),
+        )
+
 
 class fit_cubic(fit_function):
     """Fit a cubic function y=a*x^3+b*x^2+c*x+d to the (x,y) array data.
@@ -3086,25 +3372,25 @@ class fit_cubic(fit_function):
     result.f is the fitted function (accepts x values).
     """
 
-    def fn(self, x, a, b, c,d):
-        return a*x**3+b*x*x+c*x+d
+    def fn(self, x, a, b, c, d):
+        return a * x ** 3 + b * x * x + c * x + d
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         if pars_ic is None:
             if self.pars_ic is None:
-                pars_ic = array([1.,1.,1.,0.])
+                pars_ic = array([1.0, 1.0, 1.0, 0.0])
             else:
                 pars_ic = self.pars_ic
 
         res = self._do_fit(None, xs, ys, pars_ic)
         sol = res[0]
-        a,b,c,d = sol
-        def f(x):
-            return a*x**3+b*x*x+c*x+d
-        ys_fit = f(xs)
-        return args(ys_fit=ys_fit, pars_fit=(a,b,c,d), info=res,
-                          results=args(f=f))
+        a, b, c, d = sol
 
+        def f(x):
+            return a * x ** 3 + b * x * x + c * x + d
+
+        ys_fit = f(xs)
+        return args(ys_fit=ys_fit, pars_fit=(a, b, c, d), info=res, results=args(f=f))
 
 
 class fit_exponential(fit_function):
@@ -3116,23 +3402,24 @@ class fit_exponential(fit_function):
     """
 
     def fn(self, x, a, b):
-        return a*exp(b*x)
+        return a * exp(b * x)
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         if pars_ic is None:
             if self.pars_ic is None:
-                pars_ic = array([1.,-1.])
+                pars_ic = array([1.0, -1.0])
             else:
                 pars_ic = self.pars_ic
 
         res = self._do_fit(None, xs, ys, pars_ic)
         sol = res[0]
-        a,b = sol
+        a, b = sol
+
         def f(x):
-            return a*exp(b*x)
+            return a * exp(b * x)
+
         ys_fit = f(xs)
-        return args(ys_fit=ys_fit, pars_fit=(a,b), info=res,
-                          results=args(f=f))
+        return args(ys_fit=ys_fit, pars_fit=(a, b), info=res, results=args(f=f))
 
 
 class fit_diff_of_exp(fit_function):
@@ -3156,11 +3443,24 @@ class fit_diff_of_exp(fit_function):
     """
 
     def fn(self, x, k, a, b, xoff=0):
-        if a==b:
+        if a == b:
             # classic "alpha" function
-            return k*a*a*((x+xoff)*exp(-a*(x+xoff)) - xoff*exp(-a*xoff))
+            return (
+                k * a * a * ((x + xoff) * exp(-a * (x + xoff)) - xoff * exp(-a * xoff))
+            )
         else:
-            return k*a*b*(exp(-a*(x+xoff))+exp(-a*xoff)-exp(-b*(x+xoff))-exp(-b*xoff))/(b-a)
+            return (
+                k
+                * a
+                * b
+                * (
+                    exp(-a * (x + xoff))
+                    + exp(-a * xoff)
+                    - exp(-b * (x + xoff))
+                    - exp(-b * xoff)
+                )
+                / (b - a)
+            )
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         try:
@@ -3173,63 +3473,96 @@ class fit_diff_of_exp(fit_function):
             use_xoff = False
 
         def peak_pos(k, a, b, xoff=0):
-            if a==b:
-                return 1./a - xoff
+            if a == b:
+                return 1.0 / a - xoff
             else:
-                return ((b-a)*xoff+log(a/b))/(a-b)
+                return ((b - a) * xoff + log(a / b)) / (a - b)
 
         if pars_ic is None:
             if self.pars_ic is None:
                 if use_xoff:
-                    pars_ic = array([1.,1.,1.,0.])
+                    pars_ic = array([1.0, 1.0, 1.0, 0.0])
                 else:
-                    pars_ic = array([1.,1.,1.])
+                    pars_ic = array([1.0, 1.0, 1.0])
             else:
                 pars_ic = self.pars_ic
-                if (len(self.pars_ic) == 4 and not use_xoff) or \
-                   (len(self.pars_ic) == 3 and use_xoff):
+                if (len(self.pars_ic) == 4 and not use_xoff) or (
+                    len(self.pars_ic) == 3 and use_xoff
+                ):
                     raise ValueError("Inconsistent use_xoff setting with pars_ic")
 
         if peak_constraint is None:
             constraint = None
         else:
             x_index, y_value, weight_x, weight_y = peak_constraint
-            def constraint(k,a,b,xoff=0):
-                return array([weight_y*(self.fn(xs[x_index],k,a,b,xoff)-y_value),
-                              weight_x*(xs[x_index]-peak_pos(k,a,b,xoff))])
+
+            def constraint(k, a, b, xoff=0):
+                return array(
+                    [
+                        weight_y * (self.fn(xs[x_index], k, a, b, xoff) - y_value),
+                        weight_x * (xs[x_index] - peak_pos(k, a, b, xoff)),
+                    ]
+                )
+
         res = self._do_fit(constraint, xs, ys, pars_ic)
         sol = res[0]
         if use_xoff:
-            k,a,b,xoff = sol
+            k, a, b, xoff = sol
         else:
-            k,a,b = sol
+            k, a, b = sol
             xoff = 0
         if xoff == 0:
             if a == b:
                 # exceptional case
                 def f(x):
-                    return k*a*a*x*exp(-a*x)
+                    return k * a * a * x * exp(-a * x)
+
             else:
+
                 def f(x):
-                    return k*a*b*(exp(-a*x)-exp(-b*x))/(b-a)
+                    return k * a * b * (exp(-a * x) - exp(-b * x)) / (b - a)
+
         else:
             if a == b:
                 # exceptional case
                 def f(x):
-                    return k*a*a*((x+xoff)*exp(-a*(x+xoff)) - xoff*exp(-a*xoff))
+                    return (
+                        k
+                        * a
+                        * a
+                        * ((x + xoff) * exp(-a * (x + xoff)) - xoff * exp(-a * xoff))
+                    )
+
             else:
+
                 def f(x):
-                    return k*a*b*(exp(-a*(x+xoff))+exp(-a*xoff)-exp(-b*(x+xoff))-exp(-b*xoff))/(b-a)
+                    return (
+                        k
+                        * a
+                        * b
+                        * (
+                            exp(-a * (x + xoff))
+                            + exp(-a * xoff)
+                            - exp(-b * (x + xoff))
+                            - exp(-b * xoff)
+                        )
+                        / (b - a)
+                    )
+
         ys_fit = f(xs)
-        xpeak = peak_pos(k,a,b,xoff)
+        xpeak = peak_pos(k, a, b, xoff)
         ypeak = f(xpeak)
         if use_xoff:
             pars_fit = (k, a, b, xoff)
         else:
             pars_fit = (k, a, b)
-        return args(ys_fit=ys_fit, pars_fit=pars_fit, info=res,
-                          results=args(peak=(xpeak, ypeak),
-                                       f=f))
+        return args(
+            ys_fit=ys_fit,
+            pars_fit=pars_fit,
+            info=res,
+            results=args(peak=(xpeak, ypeak), f=f),
+        )
+
 
 class fit_linear(fit_function):
     """Fit a linear function y=a*x+b to the (x,y) array data.
@@ -3240,23 +3573,25 @@ class fit_linear(fit_function):
     """
 
     def fn(self, x, a, b):
-        return a*x+b
+        return a * x + b
 
     def fit(self, xs, ys, pars_ic=None, opts=None):
         if pars_ic is None:
             if self.pars_ic is None:
-                pars_ic = array([1.,0.])
+                pars_ic = array([1.0, 0.0])
             else:
                 pars_ic = self.pars_ic
 
         res = self._do_fit(None, xs, ys, pars_ic)
         sol = res[0]
-        a,b = sol
+        a, b = sol
+
         def f(x):
-            return a*x+b
+            return a * x + b
+
         ys_fit = f(xs)
-        return args(ys_fit=ys_fit, pars_fit=(a,b), info=res,
-                          results=args(f=f))
+        return args(ys_fit=ys_fit, pars_fit=(a, b), info=res, results=args(f=f))
+
 
 def make_poly_interpolated_curve(pts, coord, model):
     """Only for a 1D curve from a Model object (that has an associated
@@ -3265,10 +3600,15 @@ def make_poly_interpolated_curve(pts, coord, model):
     coord_ix = pts.coordnames.index(coord)
     x = pts[coord]
     t = pts.indepvararray
-    p = model.query('pars')
-    dx = array([model.Rhs(tval, pts[tix], p, asarray=True)[coord_ix] for \
-                tix, tval in enumerate(t)])
+    p = model.query("pars")
+    dx = array(
+        [
+            model.Rhs(tval, pts[tix], p, asarray=True)[coord_ix]
+            for tix, tval in enumerate(t)
+        ]
+    )
     return PiecewisePolynomial(t, array([x, dx]).T, 2)
+
 
 def smooth_pts(t, x, q=None):
     """Use a local quadratic fit on a set of nearby 1D points and obtain
@@ -3283,16 +3623,16 @@ def smooth_pts(t, x, q=None):
     as the argument q
     """
     ## Uncomment verbose-related statements for debugging
-#    verbose = True
+    #    verbose = True
     if q is None:
         q = fit_quadratic(verbose=False)  # verbose=verbose
     ixlo = 0
-    ixhi = len(t)-1
+    ixhi = len(t) - 1
     assert ixhi >= 4, "Provide at least five points"
     # concavity assumed to be simple: whether midpoint of x
     # is above or below the chord between the endpoints
-    midpoint_ix = int(ixhi/2.)
-    midpoint_chord = x[0]+(t[midpoint_ix]-t[0])*(x[-1]-x[0])/(t[-1]-t[0])
+    midpoint_ix = int(ixhi / 2.0)
+    midpoint_chord = x[0] + (t[midpoint_ix] - t[0]) * (x[-1] - x[0]) / (t[-1] - t[0])
     midpoint_x = x[midpoint_ix]
     # a_sign is -1 if concave down
     a_sign = sign(midpoint_chord - midpoint_x)
@@ -3302,22 +3642,28 @@ def smooth_pts(t, x, q=None):
     # central second difference formula:
     # if extremum not at endpoints then use one endpoint
     # else use central point
-    if (ixmax in (ixhi, ixlo) and a_sign == -1) or \
-       (ixmin in (ixhi, ixlo) and a_sign == 1):
+    if (ixmax in (ixhi, ixlo) and a_sign == -1) or (
+        ixmin in (ixhi, ixlo) and a_sign == 1
+    ):
         # use central point, guaranteed to be at least 2 indices away from
         # ends
         ix_cent = midpoint_ix
     else:
         # use an endpoint + 1
-        ix_cent = ixlo+2
+        ix_cent = ixlo + 2
     # use mean of right and left t steps as h (should be safe for
     # smooth enough data)
-    h = 0.25*(t[ix_cent+2]-t[ix_cent-2])
-    second_diff = (-x[ix_cent-2]+16*x[ix_cent-1]-30*x[ix_cent]+\
-                   +16*x[ix_cent+1]-x[ix_cent+2])/(12*h**2)
+    h = 0.25 * (t[ix_cent + 2] - t[ix_cent - 2])
+    second_diff = (
+        -x[ix_cent - 2]
+        + 16 * x[ix_cent - 1]
+        - 30 * x[ix_cent]
+        + +16 * x[ix_cent + 1]
+        - x[ix_cent + 2]
+    ) / (12 * h ** 2)
     assert sign(second_diff) == a_sign, "Data insufficiently smooth"
     # a_est based on second deriv of quadratic formula = 2a
-    a_est = second_diff/2.
+    a_est = second_diff / 2.0
     if a_sign == -1:
         extreme_x = x[ixmin]
         extreme_t = t[ixmin]
@@ -3327,10 +3673,12 @@ def smooth_pts(t, x, q=None):
     # using vertex form of quadratic, x = a*( t-extreme_t )^2 + extreme_x
     # then in regular formula x = at^2 + bt + c used by quadratic fit class,
     # b = -2*extreme_t, and c = a*extreme_t^2 + extreme_x
-    b_est = -2*extreme_t
-    c_est = a_est*extreme_t**2 + extreme_x
-    return q.fit(t, x, pars_ic=(a_est,b_est,c_est))
+    b_est = -2 * extreme_t
+    c_est = a_est * extreme_t ** 2 + extreme_x
+    return q.fit(t, x, pars_ic=(a_est, b_est, c_est))
     # for debugging, set res = q.fit() and then return it after the following...
+
+
 #    if verbose:
 #        print "h =", h
 #        print "a_est =", a_est, "b_est =", b_est, "c_est =", c_est
@@ -3340,6 +3688,7 @@ def smooth_pts(t, x, q=None):
 #        plot(tval, xval, 'rx')
 #        xs_fit = res.ys_fit
 #        plot(t, xs_fit, 'k:')
+
 
 def nearest_2n_indices(x, i, n):
     """Calculates the nearest 2n indices centred at i in an array x, or as close
@@ -3355,20 +3704,21 @@ def nearest_2n_indices(x, i, n):
 
     Remember to add one to the upper limit if using it in a slice.
     """
-    assert len(x) > 2*n, "x is not long enough"
+    assert len(x) > 2 * n, "x is not long enough"
     # ixlo = 0
-    ixhi = len(x)-1
+    ixhi = len(x) - 1
     if i < n:
         # too close to low end
-        return (0, 2*n)
+        return (0, 2 * n)
     elif i > ixhi - n:
         # too close to high end
-        return (ixhi-2*n, ixhi)
+        return (ixhi - 2 * n, ixhi)
     else:
-        return (i-n, i+n)
+        return (i - n, i + n)
 
 
 # --------------------------------------------------------------------
+
 
 class DomainType(object):
     def __init__(self, name):
@@ -3393,6 +3743,7 @@ class DomainType(object):
         return self.name
 
     __str__ = __repr__
+
 
 # treat these as "constants" as they are empty
 global Continuous, Discrete
